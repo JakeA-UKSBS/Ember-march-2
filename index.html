@@ -393,7 +393,8 @@ button.it.sel{border-color:var(--gold)}
 .nd{position:absolute;width:44px;height:44px;margin:-22px 0 0 -22px;border-radius:50%;padding:0;display:grid;place-items:center;background:var(--panel2);border:2px solid var(--line);opacity:.55}
 .nd img{width:28px;height:28px;image-rendering:pixelated}
 .nd.n-boss{width:60px;height:60px;margin:-30px 0 0 -30px;border-color:#a8483a}.nd.n-boss img{width:44px;height:44px}
-.nd.n-elite{border-color:#a8483a}.nd.n-rest{border-color:#c98a3a}.nd.n-recruit{border-color:var(--blue)}
+.nd.n-elite{border-color:#a8483a}.nd.n-rest{border-color:#c98a3a}.nd.n-recruit{border-color:var(--blue)}.nd.n-treasure{border-color:var(--gold)}.nd.n-event{border-color:#8a6ab0}
+.dcard[disabled]{opacity:.45}.dno{position:absolute;right:8px;bottom:6px;font-size:11px;color:var(--red)}
 .nd.vis{opacity:.85;background:#2a2620}
 .nd.cur{opacity:1;box-shadow:0 0 0 3px var(--gold)}
 .nd.ok{opacity:1;animation:pulse 1.2s infinite}
@@ -805,6 +806,7 @@ function iconArt(k){
   if(kd==='claw'){for(let i=0;i<3;i++)p.line(3+i*4,14,7+i*3,3,'#e8e2d0',1);p.line(3,14,13,14,'#8a7a5a')}
   if(kd==='pill'){p.ell(8,11,4.5,4,'#c98a3a');p.ell(8,5,2.6,2.4,'#c98a3a');p.rect(7,1,2,2,RED);p.set(6,10,'#f3d9a6')}
   if(w.thrown)p.set(1,1,GOLD);
+  if(w.forge)for(let i=0;i<w.forge;i++)p.rect(13,1+i*3,2,2,'#ffe14a');
   p.outline(OUT);return p.url();
 }
 function mapWk(u){const i=u.items.findIndex(it=>WTYPES.includes(IT[it.k].t)||IT[it.k].t==='spirit');return i>=0?u.items[i].k:null}
@@ -1621,8 +1623,8 @@ async function chapterIntro(){
   if(state.ch===1)tip('items','Villages, chests and recruits','Move any unit onto a village or chest and choose Visit or Open to collect an item. Under Items you can equip weapons, use Salves and learn skills from scrolls. Some enemies can be recruited: put your lord next to them and choose Talk.');
 }
 /* ================= RUN (roguelike) ================= */
-/* Act 1: a branching node map of ROWS floors, then the boss on floor RUN_LEN. Units, classes, looks, maps and enemies all come from the run's seed. */
-const RUN_LEN=6,TEAM_CAP=6;
+/* Act 1: a branching node map of ROWS floors, then the boss on floor RUN_LEN (both defined with the map below). Units, classes, looks, maps and enemies all come from the run's seed. */
+const TEAM_CAP=6;
 let run=null;
 
 /* ---- classes from parts: role + movement + weapon ---- */
@@ -1736,15 +1738,16 @@ function spawnTiles(m){
 }
 function genBattle(n,kind){
   const bossFight=kind==='boss',elite=kind==='elite',mk=bossFight?'maze':pick(['ford','stockade','vaults','meadow','thicket']),m=MAPS[mk];
-  const pool=[['Wolf',3],['Harpy',2],['LamiaM',n>=2?2:0],['MinotaurM',n>=3?1:0]],tot=pool.reduce((a,p)=>a+p[1],0);
+  /* n = which fight of the run this is (1-4 on any path, boss after), so enemies keep pace with the squad */
+  const lvBase=n,pool=[['Wolf',3],['Harpy',2],['LamiaM',n>=2?2:0],['MinotaurM',n>=3?1:0]],tot=pool.reduce((a,p)=>a+p[1],0);
   const roll=()=>{let r=rand()*tot;for(const[c,w]of pool){if((r-=w)<0)return c}return'Wolf'};
-  const count=Math.min(7,(bossFight?1:2)+n),list=[];
+  const count=bossFight?6:Math.min(6,2+n),list=[];
   while(list.length<count){const c=roll();list.push(c);if(c==='Wolf'&&list.length<count&&rand()<.6)list.push('Wolf')}
   const bossName=pick(BOSSN)+' '+pick(BOSST);
   const def={title:bossFight?'The Labyrinth Heart':`The ${pick(ADJ)} ${m.n}`+(elite?' (Elite)':''),goal:bossFight?'boss':'rout',map:m.map,start:m.start,gifts:{},
     intro:bossFight?`${bossName} waits at the centre of the maze. Bring it down to end the act.`:elite?`A pack led by something old and strong holds the ${m.n.toLowerCase()}. Rout them all.`:`${count} monsters prowl the ${m.n.toLowerCase()}. Rout them.`};
   def.foes=()=>{const tiles=spawnTiles(m),out=[];
-    list.forEach((c,i)=>{const lv=Math.max(1,n+(rand()<.3?1:0)-(c==='Wolf'?1:0)+(elite?1:0)),u=mkMon(c,lv),t=tiles[i%tiles.length];u.x=t.x;u.y=t.y;
+    list.forEach((c,i)=>{const lv=Math.max(1,lvBase+(rand()<.3?1:0)-(c==='Wolf'?1:0)+(elite?1:0)),u=mkMon(c,lv),t=tiles[i%tiles.length];u.x=t.x;u.y=t.y;
       if(elite&&i===0){u.name='Elder '+u.name;u.boss=true;ST.forEach(k=>{if(k==='hp'){u.maxhp+=6;u.hp+=6}else u[k]+=2});u.skill=pick(['fury','brace','swift','shieldwall'])}
       if(rand()<.2){const k=pick(['qiPill','qiPill','steelJian','steelAxe','steelSpear','steelBow']);u.items.push({k,u:IT[k].uses,d:true})}out.push(u)});
     if(bossFight){let bx=6,by=4;m.map.forEach((r,y)=>{const x=r.indexOf('T');if(x>=0){bx=x;by=y}});
@@ -1794,26 +1797,51 @@ function battleRewards(){
 }
 
 
-/* ---- node map: ROWS rows of 3 lanes, then the boss. Each node links to the same lane and sometimes a neighbour. ---- */
-const ROWS=5;
-const NODE_N={battle:'Battle',elite:'Elite',recruit:'Recruit',rest:'Rest',boss:'Boss'};
-const NODE_D={battle:'Fight monsters for EXP and loot.',elite:'A tougher fight with a strong leader. Drops an Ascension Fragment.',recruit:'Pick 1 of 3 new units.',rest:'Train one unit: it gains a level.',boss:'The act boss.'};
-function pickW(opts){const tot=opts.reduce((a,o)=>a+o[1],0);let r=rand()*tot;for(const[k,w]of opts){if((r-=w)<0)return k}return opts[0][0]}
+/* ---- node map ----
+   ROWS floors of 3 lanes, then the boss. Every path from floor 1 to the boss holds exactly the rooms in MIX
+   (battles and elites both count as combat). Lanes are shuffles of the same mix, and a crossing between lanes
+   is only kept if every path through the map still matches MIX, so no route can dodge the treasure room. */
+const MIX={battle:4,recruit:2,rest:1,event:1,treasure:1};
+const ROWS=Object.values(MIX).reduce((a,b)=>a+b,0);
+const NODE_N={battle:'Battle',elite:'Elite',recruit:'Recruit',rest:'Rest',event:'Event',treasure:'Treasure',boss:'Boss'};
+const NODE_D={battle:'Fight monsters for EXP and loot.',elite:'A tougher fight with a strong leader. Drops an Ascension Fragment.',recruit:'Pick 1 of 3 new units.',rest:'Train one unit: it gains a level.',
+  event:'Something unexpected: a smith, a shrine, an old armoury…',treasure:'A treasure room. Pick 1 of 3 items.',boss:'The act boss.'};
+function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(rand()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
+function laneOk(a){
+  if(a[0]!=='battle'||a[1]==='rest')return false;
+  for(let i=0;i+2<a.length;i++)if(a[i]==='battle'&&a[i+1]==='battle'&&a[i+2]==='battle')return false;
+  for(let i=0;i+1<a.length;i++)if(a[i]===a[i+1]&&a[i]!=='battle')return false;
+  return true;
+}
+function laneFrom(base){
+  for(let k=0;k<200;k++){const a=base?base.slice():shuffle(Object.entries(MIX).flatMap(([t,n])=>Array(n).fill(t)));
+    if(base)for(let s=0;s<2;s++){const i=ri(1,ROWS-1),j=ri(1,ROWS-1);[a[i],a[j]]=[a[j],a[i]]}
+    if(laneOk(a))return a}
+  return base.slice();
+}
+function pathsOk(rows){
+  /* room counts packed into one number, one decimal digit per room type */
+  const K=Object.keys(MIX),P=Object.fromEntries(K.map((k,i)=>[k,10**i])),want=K.reduce((a,k)=>a+MIX[k]*P[k],0);
+  const walk=(r,i,c)=>{c+=P[rows[r][i].t];return r===ROWS-1?c===want:rows[r][i].next.every(j=>walk(r+1,j,c))};
+  return rows[0].every((_,i)=>walk(0,i,0));
+}
 function genMap(){
-  const rows=[];
-  for(let r=0;r<ROWS;r++)rows.push([0,1,2].map(()=>({t:r===0?'battle':pickW([['battle',45],['elite',r>=2?15:0],['recruit',20],['rest',r>=2?20:0]]),next:[]})));
-  if(!rows.some(row=>row.some(n=>n.t==='elite')))rows[ri(2,4)][ri(0,2)].t='elite';
-  if(!rows[1].concat(rows[2]).some(n=>n.t==='recruit'))rows[ri(1,2)][ri(0,2)].t='recruit';
-  if(!rows[3].concat(rows[4]).some(n=>n.t==='rest'))rows[ri(3,4)][ri(0,2)].t='rest';
-  rows.push([{t:'boss',next:[]}]);
-  for(let r=0;r<ROWS-1;r++)rows[r].forEach((n,i)=>{n.next=[i];if(rand()<.55){const j=i+(rand()<.5?-1:1);if(j>=0&&j<3)n.next.push(j)}});
-  rows[ROWS-1].forEach(n=>n.next=[0]);
+  const l0=laneFrom(null),lanes=[laneFrom(l0),l0,laneFrom(l0)],rows=[];
+  for(let r=0;r<ROWS;r++)rows.push(lanes.map(l=>({t:l[r],next:[]})));
+  for(let r=0;r<ROWS-1;r++)rows[r].forEach((n,i)=>n.next=[i]);
+  const cand=[];for(let r=0;r<ROWS-1;r++)for(let i=0;i<3;i++)for(const j of[i-1,i+1])if(j>=0&&j<3)cand.push([r,i,j]);
+  for(const[r,i,j]of shuffle(cand)){if(rand()<.35)continue;rows[r][i].next.push(j);if(!pathsOk(rows))rows[r][i].next.pop()}
+  rows.forEach((row,r)=>row.forEach(n=>{if(n.t==='battle'&&r>=4&&rand()<.35)n.t='elite'}));
+  rows.push([{t:'boss',next:[]}]);rows[ROWS-1].forEach(n=>n.next=[0]);
   rows.forEach(row=>row.forEach((n,i)=>n.x=row.length===1?50:18+i*32+ri(-5,5)));
   return{rows};
 }
 function campArt(){const p=Px(16,16);p.line(2,14,13,10,BROWN,2);p.line(2,10,13,14,BROWN2,2);p.poly([[8,1],[12,10],[8,12],[4,10]],'#ff8a3c');p.poly([[8,5],[10,10],[8,11],[6,10]],'#ffe14a');p.outline(OUT);return p.url()}
+function chestArt(){const p=Px(16,16);p.rect(2,6,12,8,BROWN);p.ell(8,6,6,3,BROWN2,(x,y)=>y<=6);p.rect(2,8,12,1,GOLD);p.rect(7,8,2,3,GOLD);p.rect(2,6,1,8,BROWN2);p.rect(13,6,1,8,BROWN2);p.set(8,9,INK);p.outline(OUT);return p.url()}
+function eventArt(){const p=Px(16,16);p.ell(8,8,6.5,6.5,'#6a4a8a');p.line(6,5,8,4,'#f3dc9a',2);p.line(9,4,10,6,'#f3dc9a',2);p.line(10,7,8,9,'#f3dc9a',2);p.rect(7,10,2,1,'#f3dc9a');p.rect(7,12,2,2,'#f3dc9a');p.outline(OUT);return p.url()}
+const RUN_LEN=ROWS+1;
 const NODE_IC={};
-function nodeIcon(t){return NODE_IC[t]||(NODE_IC[t]=t==='battle'?icon('ironJian'):t==='elite'?icon('moonDao'):t==='rest'?campArt():
+function nodeIcon(t){return NODE_IC[t]||(NODE_IC[t]=t==='battle'?icon('ironJian'):t==='elite'?icon('moonDao'):t==='rest'?campArt():t==='treasure'?chestArt():t==='event'?eventArt():
   t==='recruit'?fig({style:'short',hair:'#6b4226',cloth:'#3a7cc0'},'Heir','p','idle',null):fig(monLook('MinotaurM'),'MinotaurM','e','idle','ironAxe'))}
 function reachable(){const M=run.map.rows;if(!run.pos)return M[0].map((_,i)=>({r:0,i}));const n=M[run.pos.r][run.pos.i];return run.pos.r+1<M.length?n.next.map(i=>({r:run.pos.r+1,i})):[]}
 const mapEl=document.createElement('div');mapEl.className='nmap';mapEl.hidden=true;document.body.appendChild(mapEl);
@@ -1832,7 +1860,7 @@ function mapScreen(){
   const sc=mapEl.querySelector('.nm-scroll'),focus=ok[0]?Y(ok[0].r):H;sc.scrollTop=Math.max(0,focus-sc.clientHeight/2);
   return new Promise(res=>{let sel=null;mapEl.onclick=e=>{
     const b=e.target.closest('.nd.ok');if(b){const[r,i]=b.dataset.n.split(',').map(Number),t=M[r][i].t;
-      if(sel===b.dataset.n){mapEl.hidden=true;mapEl.onclick=null;sfx('select');return res({r,i})}
+      if(sel===b.dataset.n){mapEl.onclick=null;sfx('select');return res({r,i})}
       sel=b.dataset.n;mapEl.querySelectorAll('.nd.pick').forEach(x=>x.classList.remove('pick'));b.classList.add('pick');sfx('tick');
       mapEl.querySelector('.nm-info').innerHTML=`<b>${NODE_N[t]}.</b> ${NODE_D[t]} Tap again to go.`;return}
     const any=e.target.closest('.nd');if(any){const[r,i]=any.dataset.n.split(',').map(Number),t=M[r][i].t;mapEl.querySelector('.nm-info').innerHTML=`<b>${NODE_N[t]}.</b> ${NODE_D[t]}`}
@@ -1848,12 +1876,79 @@ async function mapStep(){
   run.pos=pos;(run.path=run.path||[]).push(pos);run.n=pos.r+1;run.kind=N.t;
   if(N.t==='recruit'){await recruitNode();return mapStep()}
   if(N.t==='rest'){await restNode();return mapStep()}
-  run.phase='battle';await beginBattle();
+  if(N.t==='treasure'){await treasureNode();return mapStep()}
+  if(N.t==='event'){await eventNode();return mapStep()}
+  mapEl.hidden=true;run.phase='battle';await beginBattle();
+}
+
+
+/* ---- forged weapons: key "base~N" is base +N (+2 Mt, +5 Hit per level, up to +3). Built on demand like classes. ---- */
+const FORGE_MAX=3;
+function ensureIt(k){if(IT[k]||!k.includes('~'))return k;const[b,n]=k.split('~'),B=IT[b],N=+n;IT[k]=Object.assign(clone(B),{n:`${B.n} +${N}`,key:k,base:b,forge:N},B.t==='spirit'?{amt:B.amt+5*N}:{mt:B.mt+2*N,hit:B.hit+5*N});return k}
+function forgeLv(it){return IT[it.k].forge||0}
+function forge(it){const B=IT[it.k],n=(B.forge||0)+1;if(n>FORGE_MAX)return false;it.k=ensureIt((B.base||it.k)+'~'+n);return true}
+const STEEL={blade:'steelJian',heavy:'steelAxe',pole:'steelSpear',bow:'steelBow'};
+
+/* ---- shared pickers ---- */
+function itemText(k){return itemInfo({cls:'Heir',name:''},k).replace(/ · [^·]*can't (wield|use) this\./,'')}
+async function pickUnit(title,text,ok){
+  const L=run.roster.map((u,i)=>({u,i,why:ok?ok(u):null}));
+  const m=await modal(`<h2>${title}</h2><p>${text}</p><div class="draft">${L.map(({u,i,why})=>`<button type="button" class="dcard" data-m="u${i}"${why?' disabled':''}>${unitCard(u)}${why?`<span class="dno">${why}</span>`:''}</button>`).join('')}</div><div class="mbtns"><button type="button" data-m="skip">Cancel</button></div>`);
+  return m==='skip'?null:run.roster[+m.slice(1)];
+}
+const evDone=(t,html)=>modal(`<h2>${t}</h2><p>${html}</p><div class="mbtns"><button class="go" type="button" data-m="ok">Continue</button></div>`);
+const full=u=>u.items.length>=5?'Inventory full':null;
+const weaponOf=u=>u.items.find(it=>(isWpn(it.k)||IT[it.k].t==='spirit')&&canUse(u,it.k));
+
+/* ---- treasure: pick 1 of 3 items, then who carries it ---- */
+async function treasureNode(){
+  const pool=['steelJian','steelAxe','steelSpear','steelBow','moonDao','greatsword','javelin','throwAxe','crossbow','thunderT','greaterMend','crest','qiPill',...Object.keys(SKILLS).filter(k=>k!=='rally').map(k=>'scroll_'+k)];
+  const opts=shuffle(pool.slice()).slice(0,3);
+  for(;;){
+    const m=await modal(`<div class="eyebrow">Treasure</div><h2>A sealed vault</h2><p>Three chests, but the lock only opens once. Take one.</p><div class="inv">${opts.map((k,i)=>`<button type="button" class="it" data-m="c${i}"><img src="${icon(k)}" alt=""><span>${itemText(k)}</span></button>`).join('')}</div>`);
+    const k=opts[+m.slice(1)],u=await pickUnit(`Who carries the ${IT[k].n}?`,'Units with full inventories can’t take it.',u=>full(u)||(isWpn(k)&&!canUse(u,k)?'Can’t wield it':null));
+    if(!u)continue;u.items.push({k,u:IT[k].uses});sfx('item');toast(`${u.name} takes the ${IT[k].n}`);return;
+  }
+}
+
+/* ---- events: each has a text and up to two choices; null = walk away ---- */
+const EVENTS={
+  smith:{t:'The Wandering Smith',d:'A smith with a cart-mounted forge waves you over. “One weapon, no charge. I like the look of you.”',
+    a:['Reforge a weapon (+2 Mt, +5 Hit)',async()=>{
+      const u=await pickUnit('Whose weapon?',`Each reforge adds +2 Mt and +5 Hit (charms heal +5), up to +${FORGE_MAX}.`,u=>{const w=weaponOf(u);return!w?'No weapon':forgeLv(w)>=FORGE_MAX?'Already +3':null});
+      if(!u)return false;const w=weaponOf(u),old=IT[w.k].n;forge(w);sfx('item');await evDone('Reforged',`${u.name}’s ${old} is now the <b>${IT[w.k].n}</b>: Mt ${IT[w.k].mt}, Hit ${IT[w.k].hit}.`);return true}],
+    b:['Move on',null]},
+  armoury:{t:'Abandoned Armoury',d:'Racks of old weapons, most rusted through. A few are still good, and there are medicine jars on a shelf.',
+    a:['Take a steel weapon for one unit',async()=>{
+      const u=await pickUnit('Who takes a weapon?','They get the steel version of their weapon type. Sigils and charms get reforged instead.',u=>full(u)&&STEEL[CLS[u.cls].w[0]]?'Inventory full':!STEEL[CLS[u.cls].w[0]]&&forgeLv(weaponOf(u)||{k:'qiPill'})>=FORGE_MAX?'Already +3':null);
+      if(!u)return false;const st=STEEL[CLS[u.cls].w[0]];
+      if(st){u.items.push({k:st,u:IT[st].uses});await evDone('Armed',`${u.name} takes the <b>${IT[st].n}</b> (Mt ${IT[st].mt}).`)}
+      else{const w=weaponOf(u);forge(w);await evDone('Reforged',`${u.name}’s weapon is now the <b>${IT[w.k].n}</b>.`)}
+      sfx('item');return true}],
+    b:['Take 2 Salves',async()=>{const a=giveItem('qiPill'),b=giveItem('qiPill');await evDone('Supplies',[a,b].filter(Boolean).map(u=>`${u.name} takes a Salve.`).join(' ')||'Nobody has room.');return true}]},
+  shrine:{t:'Shrine of Trial',d:'A cracked altar asks for blood. Whoever gives it will be taught something.',
+    a:['A unit gives 3 max HP to learn a skill',async()=>{
+      const u=await pickUnit('Who offers blood?','They lose 3 max HP for good, and learn a random skill (or get its scroll if they lack capacity).',u=>u.maxhp<=12?'Too weak':null);
+      if(!u)return false;const ks=Object.keys(SKILLS).filter(k=>k!=='rally'&&!has(u,k));if(!ks.length)return false;const k=pick(ks);
+      u.maxhp-=3;u.hp=Math.min(u.hp,u.maxhp);let how;
+      if(!learnBlock(u,k)){u.skills.push({id:k,src:'scroll'});how=`learns <b>${SKILLS[k].n}</b>`}else if(u.items.length<5){u.items.push({k:'scroll_'+k,u:1});how=`receives a <b>${SKILLS[k].n} Scroll</b>`}else how=`glimpses ${SKILLS[k].n}, but has no room to keep it`;
+      sfx('earth');await evDone('The shrine answers',`${u.name} bleeds on the altar (max HP ${u.maxhp}) and ${how}. ${SKILLS[k].d}`);return true}],
+    b:['Leave it',null]},
+  spar:{t:'Training Ground',d:'An empty yard with straw dummies and blunted weapons.',
+    a:['Everyone spars: all units gain 50 EXP',async()=>{for(const u of run.roster){const g=gainExp(u,50);if(g&&g.gains)await levelUp(u,g)}await evDone('A good session','Every unit gains 50 EXP.');return true}],
+    b:['Move on',null]}
+};
+async function eventNode(){
+  const id=pick(Object.keys(EVENTS)),E=EVENTS[id];
+  for(;;){
+    const m=await modal(`<div class="eyebrow">Event</div><h2>${E.t}</h2><p>${E.d}</p><div class="mbtns" style="flex-direction:column">${['a','b'].map(k=>`<button type="button"${k==='a'?' class="go"':''} data-m="${k}">${E[k][0]}</button>`).join('')}</div>`);
+    const f=E[m][1];if(!f||await f())return;
+  }
 }
 
 /* ---- flow ---- */
 async function beginBattle(){
-  const def=genBattle(run.n,run.kind);CH.length=0;CH.push(def);
+  run.fights=(run.fights||0)+1;const def=genBattle(run.fights,run.kind);CH.length=0;CH.push(def);
   setupChapter(0,run.roster);rewinds=3;saveGame();await chapterIntro();
 }
 async function newRun(){
@@ -1892,9 +1987,11 @@ async function loseScreen(){
 }
 function rewind(){if(!settings.rewind||rewinds<=0||!history.length||busy)return;if(ui!=='idle')cancelMove();state=history.pop();rewinds--;over=null;phase='player';clearSel();ui='idle';render();saveGame()}
 function restore(d){
-  run=d.run;seedRng(d.rng);run.roster.forEach(u=>ensureCls(u.cls));if(run.phase==='map')return;
+  run=d.run;seedRng(d.rng);
+  const fix=us=>us.forEach(u=>{ensureCls(u.cls);u.items.forEach(it=>ensureIt(it.k))});
+  fix(run.roster);if(run.phase==='map')return;
   CH.length=0;CH.push(d.def);
-  [...d.state.units,...(d.chStart?d.chStart.units:[]),...run.roster].forEach(u=>ensureCls(u.cls));
+  fix([...d.state.units,...(d.chStart?d.chStart.units:[])]);
   state=d.state;history=d.history||[];rewinds=d.rewinds??3;chStart=d.chStart||clone(state);enterMap();
 }
 /* ---- story scenes ---- */
