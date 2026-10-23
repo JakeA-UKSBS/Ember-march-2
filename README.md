@@ -1,28 +1,24 @@
-# Nightbound
+# Ember March (roguelike)
 
-A grid-tactics RPG for phones, in the style of GBA Fire Emblem. It runs on the Ember March engine.
-
-Twenty years ago a bell rang across the world. Now everyone hears it once, on the night they turn eighteen, and is pulled into a Trial. Pass it and you come home stronger. Fail and you stay behind as one of the Fallen.
+A run-based tactics roguelike in the style of GBA Fire Emblem, for phones. Forked from Nightbound's engine.
 
 ## Run it
-Open `index.html` in a browser. Keep the `heroes/` folder beside it.
+Open `index.html` in a browser.
 
-## Layout
-- `index.html`: the engine, rules, map, chapters and story.
-- `heroes/*.js`: one file per playable character (stats, growths, items, look, the skill learned at Lv 10 as `lv10`, and any Talk conversation). To add a hero, copy a file, edit it, and add a `<script src="heroes/name.js">` line in `index.html`.
+## A run
+- Pick 3 of 5 generated units. Fallen units are gone for the rest of the run; you only lose when the whole squad falls.
+- Act 1 is 5 battles (`RUN_LEN`). The last is a boss in the Labyrinth Heart.
+- After each win: loot, then a recruit offer (pick 1 of 3, or skip). The team caps at 6 (`TEAM_CAP`).
+- Every run has a seed (shown on the draft and defeat screens). All rolls come from it.
 
-## Skills and classes
-- Each unit has a free personal skill, a free skill learned at Lv 10, and room for scroll skills up to a capacity of 20 (25 after ascending).
-- Skill costs and descriptions are in `SKILLS` in `index.html`. Each skill has a matching scroll item (`scroll_<id>`).
-- At Lv 10 or higher, an Ascension Fragment changes a unit's class (the `promo` field in `CLS`): stat bonuses, extra weapon types, +5 capacity, and the level resets to 1.
+## Where things live (all in `index.html`)
+- `ROLES`, `MOVES`, `KIT`: the class parts. A class is role + movement + weapon, keyed like `G.skirm.foot.pole.1`. `ensureCls()` builds it, plus its promoted version (`.2`, adds a second weapon type).
+- `genUnit()`: rolls stats, growths, starting skill, kit, name and look.
+- `genLook()`, `GEAR`, `SKINS`, `HAIRC`, `CLOTH`: the random sprite parts. Sprites are 32×32, drawn in code by `fig()`.
+- Monsters: `Wolf`, `Harpy`, `LamiaM`, `MinotaurM` in `CLS`/`FOE`, looks from `monLook()`. Wolves use the `beast` body in `fig()`.
+- `MAPS`: battle maps. `genBattle()` picks a map and enemies by battle number.
+- Promotion: an Ascension Fragment at Lv 5+ (`PROMO_LV`). Fragments drop after battles 2 and 4.
+- Magic: fire > nature > water > fire, light > dark. Dark sigils drain 25% of damage dealt.
 
-## Teams
-- Blue: your units. Red: enemies. Green: "other" units that fight the enemy on their own turn (the Other Phase) and can be recruited by Talking with the lord.
-- Recruits live in `heroes/` like any hero. Place them with `recruitFoe(id,x,y)` (enemy side) or `recruitGreen(id,x,y)` (green) in a chapter's `foes()`.
-
-## Chapters (the first Nightmare)
-`CH` in `index.html` holds eight chapters. Each can set:
-- `goal`: `rout`, `boss`, `defend` (with `turns`), `reach` (get the lord to an `X` tile) or `duel` (lord vs the turncoat, then `horde()` with the party at `start2`).
-- `protect`: a unit id that must survive. `join` / `leave`: units added for the chapter or removed after it. `reward`: an item given to a unit on a win.
-- `waves`: `{turn: () => [foes]}` reinforcements. `traps`: hidden tiles that deal 6 damage. `scene`: a cutscene played first (`takeoff`).
-- Map letters added: `~` sky, `d` deck, `M` mast, `h` hull, `H` helm, `X` exit, `A` tent, `r` carpet, `L` light font, `R` crag. The ship is drawn under the `d`/`h`/`M`/`H` tiles from the map itself.
+## Not built yet
+Node map, relics, unlocks, Act 2, mounted and flying player units, promotion choices.

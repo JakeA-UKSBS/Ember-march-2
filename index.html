@@ -1,4 +1,4 @@
-<title>Nightbound</title>
+<title>Ember March</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Alegreya+SC:wght@500;700&family=Alegreya+Sans:wght@400;500;700&display=swap">
 <style>
@@ -383,6 +383,15 @@ button.it.sel{border-color:var(--gold)}
 .roster div{display:flex;flex-direction:column;align-items:center;font-size:12px;gap:2px;width:60px;text-align:center}
 .roster img{width:48px;height:48px;object-fit:cover;background:var(--panel2);border-radius:6px}
 .roster .dead img{filter:grayscale(1) brightness(.5)}
+.draft{display:flex;flex-direction:column;gap:6px}
+.dcard{position:relative;display:flex;gap:10px;align-items:center;text-align:left;padding:6px 8px}
+.dcard.on{border-color:var(--gold);background:color-mix(in srgb,var(--gold) 14%,var(--panel2))}
+.dimg{flex:none;width:56px;height:56px;background:var(--panel2);border-radius:6px;display:grid;place-items:center}
+.dimg img{width:56px;height:56px;image-rendering:pixelated}
+.dtxt{display:flex;flex-direction:column;gap:1px;min-width:0;font-size:12px}
+.dtxt>b{font-size:15px}.dcls{color:var(--gold)}.dst{color:var(--muted)}.dst b{color:var(--fg)}
+.dsk{color:var(--muted)}.dsk img{width:14px;height:14px;image-rendering:pixelated;vertical-align:-2px;margin-right:2px}
+.dtick{position:absolute;right:8px;top:6px;color:var(--gold);font-weight:700}
 .title{position:fixed;inset:0;z-index:58;overflow:hidden;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:clamp(28px,8vh,64px);padding:16px;padding-top:max(16px,env(safe-area-inset-top,0px));padding-bottom:max(16px,env(safe-area-inset-bottom,0px));background:linear-gradient(#0d0f18,#1a1e30 55%,#2a2233)}
 .tsky{position:absolute;inset:0;pointer-events:none;background:
  linear-gradient(transparent 55%,rgba(13,15,24,.9)),
@@ -410,7 +419,7 @@ button.it.sel{border-color:var(--gold)}
 </style>
 
 <div class="wrap">
-  <div class="top"><h1>Nightbound</h1><span class="turn" id="turn"></span></div>
+  <div class="top"><h1>Ember March</h1><span class="turn" id="turn"></span></div>
   <div class="bar">
     <button id="btnDanger" type="button">Danger</button>
     <button id="btnRewind" type="button">Rewind 3</button>
@@ -441,15 +450,6 @@ button.it.sel{border-color:var(--gold)}
 /* Hero registry. Each file in heroes/ adds itself here; the game script below reads them. */
 const HEROES=[],LORDS={},TALKS={};
 </script>
-<script src="heroes/lord.js"></script>
-<script src="heroes/maren.js"></script>
-<script src="heroes/dax.js"></script>
-<script src="heroes/kestrel.js"></script>
-<script src="heroes/iona.js"></script>
-<script src="heroes/oti.js"></script>
-<script src="heroes/gruu.js"></script>
-<script src="heroes/silas.js"></script>
-<script src="heroes/vasha.js"></script>
 <script>
 /* ================= DATA ================= */
 const PICS={};
@@ -468,7 +468,7 @@ const TER={
   'L':{n:'Light Font',k:'light',c:1,av:10,df:1,heal:true},'R':{n:'Crag',k:'cliff',c:99,av:0,df:0}
 };
 /* Weapon types: blade > heavy > pole > blade. bow and reach are neutral.
-   Arts (t:'art') follow the five-element cycle: water > fire > lightning > wind > earth > water. Illusion is neutral. */
+   Arts (t:'art'): fire > nature > water > fire, and light > dark. Dark is neutral to the rest but drains life (heals 25% of damage dealt). */
 const IT={
   ironJian:{n:'Worn Sword',t:'blade',kind:'sword',mt:5,hit:90,crit:0,r:[1,1],uses:40},
   twinBlades:{n:'Twin Daggers',t:'blade',kind:'twin',mt:4,hit:95,crit:5,r:[1,1],uses:40},
@@ -496,6 +496,9 @@ const IT={
   stoneT:{n:'Stone Sigil',t:'art',kind:'talisman',el:'earth',mt:7,hit:75,crit:0,r:[1,2],uses:35,mag:true},
   thunderT:{n:'Storm Sigil',t:'art',kind:'talisman',el:'lightning',mt:8,hit:80,crit:5,r:[1,2],uses:35,mag:true},
   mirageT:{n:'Mirror Sigil',t:'art',kind:'talisman',el:'illusion',mt:6,hit:85,crit:0,r:[1,2],uses:40,mag:true},
+  natureT:{n:'Thorn Sigil',t:'art',kind:'talisman',el:'nature',mt:5,hit:90,crit:0,r:[1,2],uses:40,mag:true},
+  lightT:{n:'Dawn Sigil',t:'art',kind:'talisman',el:'light',mt:5,hit:90,crit:0,r:[1,2],uses:40,mag:true},
+  darkT:{n:'Umbral Sigil',t:'art',kind:'talisman',el:'dark',mt:5,hit:85,crit:0,r:[1,2],uses:40,mag:true,drain:true},
   glimmer:{n:'Glimmer',t:'art',kind:'talisman',el:'light',mt:2,hit:85,crit:0,r:[1,2],uses:45,mag:true},
   spiritMend:{n:'Mending Charm',t:'spirit',kind:'spirit',amt:10,r:[1,1],uses:30},
   greaterMend:{n:'Dawn Charm',t:'spirit',kind:'spirit',amt:20,r:[1,1],uses:20,tint:'mend'},
@@ -507,8 +510,8 @@ const IT={
 for(const k in IT)IT[k].key=k;
 const WTYPES=['blade','heavy','pole','bow','reach','art'];
 const TRI={blade:'heavy',heavy:'pole',pole:'blade'};
-const ELE={water:'fire',fire:'lightning',lightning:'wind',wind:'earth',earth:'water'};
-const ELN={light:'Light',fire:'Fire',water:'Water',wind:'Wind',earth:'Earth',lightning:'Lightning',illusion:'Illusion'};
+const ELE={fire:'nature',nature:'water',water:'fire',light:'dark'};
+const ELN={light:'Light',dark:'Dark',fire:'Fire',nature:'Nature',water:'Water',wind:'Wind',earth:'Earth',lightning:'Lightning',illusion:'Illusion'};
 const CLS={
   Heir:{n:'Initiate',w:['blade'],body:'tunic',mov:5,crit:10,promo:'Vanguard'},SpearGuard:{n:'Warden',w:['pole'],body:'armor',mov:5,promo:'Bastion'},Halberdier:{n:'Breaker',w:['heavy'],body:'vest',mov:5,promo:'Ravager'},
   Archer:{n:'Hunter',w:['bow'],body:'tunic',mov:5,promo:'Deadshot'},Adept:{n:'Sigilist',w:['art'],body:'robe',mov:5,promo:'Runelord'},Healer:{n:'Mender',w:['spirit','art'],body:'robe',mov:5,promo:'Lightbearer'},
@@ -554,10 +557,10 @@ const SKILLS={
 /* Skill scrolls (one per skill except Command) and the class-change item. */
 for(const k in SKILLS)if(k!=='rally')IT['scroll_'+k]={n:SKILLS[k].n+' Scroll',t:'scroll',kind:'scroll',skill:k,uses:1,key:'scroll_'+k};
 IT.crest={n:'Ascension Fragment',t:'crest',kind:'crest',uses:1,key:'crest'};
-const BASE_CAP=20,PROMO_CAP=5,PROMO_LV=10;
+const BASE_CAP=20,PROMO_CAP=5,PROMO_LV=5;
 const START_PARTY=['lord','maren','dax','oti','silas','kestrel'];
 const heroDef=id=>HEROES.find(h=>h.id===id);
-function lordName(){const l=state&&state.units.find(u=>u.lord);return l?l.name:(LORDS[settings.lord||'m'].name)}
+function lordName(){return'Your squad'}
 const FOE={
   LamiaE:{b:[19,5,0,4,4,0,4,2],g:[.7,.4,0,.35,.3,.05,.2,.15],items:['ironSpear'],pic:'javelin',look:{style:'long',tail:'#55635c'}},
   Bandit:{b:[20,5,0,1,3,0,2,0],g:[.8,.45,0,.2,.25,.05,.15,.05],items:['ironAxe'],pic:'earth',look:{style:'bald',gear:'headband',beard:true}},
@@ -580,213 +583,9 @@ FOE.Mindsnail={b:[24,0,7,5,2,2,8,7],g:[.6,0,.4,.3,.1,.1,.3,.3],items:['mirageT']
 FOE.StormHarpy={b:[17,0,6,5,6,1,1,5],g:[.55,0,.4,.35,.4,.1,.1,.3],items:['thunderT'],pic:'lightning',look:{style:'long',hair:'#c8d0e0',skin:'#a9a3c0',eye:'#9fd8ff',cloth:'#4a5a7a',wing:'#55607a'}};
 const HAIRS=['#1d1a24','#2a2230','#3a2a20','#241c1c','#4a3a30'];
 
-const CH=[
-  {title:'Make Camp',goal:'rout',
-   map:["mm.F..mm","m....f.m",".f....f.","..ww=w..","f.w..w.f","....f...",".f.mm...","......f.","ww=ww.ww","..f....C","F......f"],
-   start:[[3,10],[4,9],[2,9],[4,10],[6,9],[0,9]],
-   intro:'Night is coming and the party needs somewhere to rest. The ruined shrine in the drowned square will do, once the Fallen around it are gone. Clear the square.',
-   gifts:{'7,9':'steelBow'},
-   foes:()=>[
-     foe('Bandit',1,1,4),foe('Bandit',1,6,4,{carry:'scroll_focus'}),
-     foe('SectGuard',1,2,2,{hold:1}),foe('Crossbowman',1,4,3,{hold:1}),foe('Swordsman',2,6,6,{carry:'steelJian'}),
-     boss({id:'mirebeast',name:'The Mire Beast',cls:'MireBeast',lv:4,x:3,y:0,s:[27,8,0,5,4,2,6,2],items:['claws'],carry:'crest',skill:'shieldwall',look:{skin:'#3f5a4a',eye:'#ffd23f'}})
-   ]},
-  {title:'Defend the Camp',goal:'defend',turns:6,join:['iona'],
-   map:["f..m..f...m.",".f.....f..f.","..###__###..","..#A____A#..","f.#______#.f","..#__F____..","..___A__A#..","f.#______#.f","..#A____C#..","..########..",".f..m..f..f.","...f....m..."],
-   start:[[4, 4], [5, 4], [6, 4], [4, 6], [6, 6], [7, 4], [6, 7], [4, 7]],
-   intro:'The Fallen are closing on the camp from three sides. The palisade has three gaps: hold them for 6 turns, until dawn. More of the dead arrive every turn.',
-   gifts:{'8,8':'qiPill'},
-   foes:()=>[foe('Bandit',1,5,0),foe('SectGuard',2,0,6),foe('Crossbowman',1,11,4),foe('Bandit',2,10,10)],
-   waves:{
-     2:()=>[foe('Bandit',2,6,0),foe('Swordsman',2,0,1)],
-     3:()=>[foe('Bandit',2,0,11),foe('Crossbowman',2,11,0),foe('SectGuard',2,11,11)],
-     4:()=>[foe('Swordsman',3,6,11),foe('Bandit',3,0,5)],
-     5:()=>[foe('Bandit',3,5,0),foe('HexAdept',2,11,6)]
-   }},
-  {title:'The Labyrinth',goal:'reach',
-   map:["#############","#C____X__#_C#","#_##_###C#_##","#___#___#___#","###_#_C_#_#_#","#___#___#_#_#","#_#####_###_#","#_m___#___F_#","#_###_#_###_#","#___#_m_#___#","#_#_#####_#_#","#C#___#___#C#","#_###___###_#","#_____#_____#","#############"],
-   start:[[6, 12], [5, 12], [7, 12], [5, 13], [7, 13], [4, 13], [8, 13], [3, 13], [9, 13]],
-   intro:'Find a way through the labyrinth and get {lord} to the exit at the far end. Some floor tiles hide traps, and gremlins hunt in the dark. To the east, lamia are turning on each other; one of them only wants to join you. Reach her with {lord} and Talk.',
-   gifts:{'1,11':'qiPill','11,11':'qiPill','1,1':'scroll_swift','11,1':'greaterMend','8,2':'galeT','6,4':'qiPill'},
-   traps:['5,7','10,2','1,9','11,8','3,3'],
-   foes:()=>[
-     foe('Bandit',3,3,9),foe('Swordsman',3,9,9),foe('Crossbowman',3,2,7,{hold:1}),foe('SectGuard',3,9,7),foe('HexAdept',3,1,3),foe('TideAdept',3,5,1),
-     foe('Gremlin',3,4,1),foe('Gremlin',3,3,5),foe('Gremlin',3,9,11,{carry:'qiPill'}),foe('Gremlin',3,5,9),
-     foe('LamiaE',3,11,4,{skill:'stone',carry:'scroll_brace'}),foe('LamiaE',2,10,3),
-     recruitGreen('vasha',11,5)
-   ]},
-  {title:'The Minotaur',goal:'boss',reward:{unit:'dax',item:'labrys'},
-   map:["#############","###_______###","##___#_#___##","#__m_____m__#","#_#___T___#_#","#___#___#___#","#__m_____m__#","##_#_____#_##","#____m_m____#","##__#___#__##","###___F___###","####_____####","#############"],
-   start:[[6, 11], [5, 11], [7, 11], [4, 11], [8, 11], [5, 10], [7, 10], [4, 10], [8, 10], [3, 10], [9, 10]],
-   intro:'The Minotaur guards the heart of the labyrinth, and it does not stay on its throne. Bring it down. Its great axe would suit Dax.',
-   gifts:{},
-   foes:()=>[
-     foe('Gremlin',4,3,3),foe('Gremlin',4,9,3),foe('IronGuard',4,5,4,{hold:1}),foe('SectGuard',4,7,4,{hold:1}),
-     foe('Crossbowman',4,1,4),foe('Crossbowman',4,11,4),foe('HexAdept',4,6,2),
-     boss({id:'minotaur',name:'The Minotaur',cls:'Minotaur',lv:7,x:6,y:4,mov:3,s:[36,13,0,7,5,3,9,2],items:['labrys','throwAxe'],carry:'qiPill',skill:'fury',look:{style:'bald',horns:true,cape:true,skin:'#8a6a52',eye:'#ff6b4a',cloth:'#4a2a22'}})
-   ]},
-  {title:'The Vaults',goal:'rout',
-   map:["##############","#C__#C_C_#__C#","#___#____#___#","##_###__###_##","#____________#","#_##_m__m_##_#","#_#C______C#_#","#_##_m__m_##_#","#____________#","##_###__###_##","#C__#____#__C#","#___#_F__#___#","##############"],
-   start:[[6, 10], [5, 10], [7, 10], [8, 10], [5, 11], [6, 11], [7, 11], [8, 11]],
-   intro:'Behind the Minotaur\'s throne lie vaults full of chests. Clear out the Fallen and open as many chests as you can. Watch the floor: the vaults are trapped.',
-   gifts:{'1,1':'qiPill','5,1':'scroll_fury','7,1':'steelSpear','12,1':'greaterMend','3,6':'thunderT','10,6':'scroll_deadeye','1,10':'crest','12,10':'stoneT'},
-   traps:['6,5','3,8','10,8','2,2'],
-   foes:()=>[
-     foe('Bandit',4,6,4),foe('Swordsman',4,2,4),foe('Swordsman',4,11,4),foe('Crossbowman',4,6,8),foe('SectGuard',4,6,1),foe('TideAdept',4,7,6),
-     foe('Gremlin',4,2,1),foe('Gremlin',4,11,1),foe('Gremlin',4,2,10),foe('Gremlin',4,11,11,{carry:'qiPill'})
-   ]},
-  {title:'Gruu\'s Wreck',goal:'defend',turns:5,protect:'gruu',wreck:true,
-   map:["~~~~~~~~~~~~~","~~~hhhMhhh~~~","~~hhdddddhh~~","~~~hhdddhh~~~","RR....._...RR","R..m.......mR","...R..F..R...",".f.........f.","..m..RRR..m..",".....R.R.....","f.f.......f.f","..f...m...f..","f...f...f...f"],
-   start:[[5, 4], [7, 4], [4, 4], [8, 4], [5, 5], [6, 5], [7, 5], [4, 5], [8, 5], [6, 6]],
-   intro:'Gruu needs five turns to get his ship flying. The dead are climbing the cliff. Hold the gaps between the crags, and keep Gruu alive.',
-   gifts:{},
-   foes:()=>[npc('gruu',6,2,{mov:0}),foe('Bandit',5,0,12),foe('Swordsman',5,12,12),foe('Crossbowman',5,6,12)],
-   waves:{
-     2:()=>[foe('Bandit',5,0,7),foe('Gremlin',5,12,7)],
-     3:()=>[foe('SectGuard',5,6,12),foe('Gremlin',5,2,12),foe('Bandit',5,10,12)],
-     4:()=>[foe('Swordsman',6,0,9),foe('Crossbowman',6,12,9),foe('Gremlin',5,6,12)],
-     5:()=>[foe('Bandit',6,0,12),foe('IronGuard',6,12,12)]
-   }},
-  {title:'The Flying Ship',goal:'defend',turns:6,protect:'gruu',join:['gruu'],leave:['gruu'],scene:'takeoff',
-   map:["~~~~~~~~~~~","~~~~~d~~~~~","~~~~ddd~~~~","~~~ddddd~~~","~~~ddMdd~~~","~~ddddddd~~","~~ddddddd~~","~~dddMddd~~","~~ddddddd~~","~~ddddddd~~","~~dddMddd~~","~~ddddddd~~","~~~ddHdd~~~","~~~~ddd~~~~","~~~~~~~~~~~"],
-   start:[[5, 9], [4, 9], [6, 9], [3, 8], [7, 8], [4, 11], [6, 11], [5, 12], [3, 10], [7, 10], [4, 13]],
-   intro:'Fliers are attacking the ship in the cloud sea. Keep Gruu alive while he steers: survive 6 turns. Bows deal triple damage to fliers.',
-   gifts:{},
-   foes:()=>[foe('Gloomwing',6,0,3),foe('Gloomwing',6,10,3),foe('StormHarpy',6,5,0)],
-   waves:{
-     2:()=>[foe('Gloomwing',6,0,8),foe('Gloomwing',6,10,8)],
-     3:()=>[foe('StormHarpy',6,0,12),foe('StormHarpy',6,10,12),foe('Gloomwing',6,5,14)],
-     4:()=>[foe('Gloomwing',7,0,5),foe('Gloomwing',7,10,5),foe('Gloomwing',7,5,0)],
-     5:()=>[foe('StormHarpy',7,0,10),foe('StormHarpy',7,10,10)]
-   }},
-  {title:'The Palace',goal:'duel',bright:true,
-   map:["#############","#L___rTr___L#","#_#__rrr__#_#","#____rrr____#","#_#__rrr__#_#","#____rrr____#","#_#__rrr__#_#","#____rrr____#","#_#__rrr__#_#","#____rrr____#","#_#__rrr__#_#","#L___rrr___L#","#####___#####"],
-   start:[[6,9]],duelist:[6,6],start2:[[6, 11], [5, 11], [7, 11], [5, 10], [7, 10], [4, 11], [8, 11], [6, 12]],
-   intro:'A giant snail on the throne has taken hold of Silas\'s mind. Fight him alone and bring him to a third of his HP or less to break its grip; kill him and he is lost for good. Then defeat the Shell Matriarch and her horde.',
-   gifts:{},
-   foes:()=>[boss({id:'matriarch',name:'The Shell Matriarch',cls:'Mindsnail',lv:9,x:6,y:1,s:[44,0,13,9,3,5,12,10],items:['mirageT'],skill:'siphon',look:{skin:'#c9d1b5',shell:'#e6b8d8',eye:'#ff5ad1'}})],
-   horde:()=>[
-     foe('Swordsman',8,2,1),foe('Swordsman',8,10,1),foe('Bandit',8,1,3),foe('Bandit',8,11,3),foe('SectGuard',8,1,5),foe('SectGuard',8,11,5),
-     foe('Mindsnail',7,3,3),foe('Mindsnail',7,9,3),foe('IronGuard',8,1,7),foe('IronGuard',8,11,7)
-   ]}
-];
-
-/* ================= STORY SCRIPTS =================
-   Edit these freely. Each chapter index (0 = Chapter 1) can have:
-     pre:  plays after the save screen, before the chapter intro card
-     post: plays after the chapter is won, before the save screen
-   Each line is [speaker, text].
-     speaker: a unit id ('lord','maren','dax','oti','silas','kestrel','iona','vasha','gruu'),
-              'narrator' for a centred caption with no portrait,
-              or any other name (shown with no portrait).
-   {lord} is replaced with the player's lord name.                                   */
-const STORY={
-  0:{pre:[
-      ['narrator','Twenty years ago, a bell rang across the whole world. Now everyone hears it once, on the night they turn eighteen.'],
-      ['narrator','When it rings, you are pulled into a Nightmare. Pass it, and you come home stronger than anyone ordinary. Fail, and you never come home. Your body stays behind as one of the Fallen.'],
-      ['narrator','What you can wield in a Nightmare isn\'t chosen. It grows out of who you are, and it changes as you do.'],
-      ['lord','Cold water. Broken stone. And that bell, still ringing somewhere far off.'],
-      ['maren','You heard it too? I\'m Maren. So this is a Nightmare. My brother never came back from his.'],
-      ['dax','Dax. Those things in the square were people once. Look at their clothes.'],
-      ['oti','Oti. I\'m not much of a fighter, but I can keep you standing.'],
-      ['silas','Silas. I was a sellsword back home. This is just another job. So, who\'s giving the orders?'],
-      ['lord','I suppose I am.'],
-      ['silas','Good. Then I know who to watch.'],
-      ['kestrel','Kestrel. I woke up over by the water, on my own. I\'d rather not stay that way with those things about.'],
-      ['lord','It\'ll be dark soon. That shrine will make a camp, once we clear the square.']],
-    post:[
-      ['narrator','The square falls quiet. They light a fire inside the ruined shrine, the first warmth since the bell.'],
-      ['silas','Nice place. Shame about the neighbours.'],
-      ['dax','They\'ll be back. Those things don\'t sleep.'],
-      ['lord','Then we build a wall and take turns on watch.']]},
-  1:{pre:[
-      ['narrator','They spend the night dragging rubble into a palisade around the camp.'],
-      ['narrator','Late in the night, a girl in scorched robes stumbles into the firelight.'],
-      ['iona','Is this your camp? Good. I\'m staying. I\'m Iona, and I set things on fire.'],
-      ['narrator','Before dawn, Kestrel shakes {lord} awake.'],
-      ['kestrel','Up. They\'re coming, from every side.'],
-      ['maren','Then we hold the gaps in the wall. Kestrel, get somewhere high and keep them off us.'],
-      ['iona','And I\'ll light up anything that comes through.']],
-    post:[
-      ['narrator','Dawn breaks grey, and the Fallen melt back into the ruins.'],
-      ['kestrel','They weren\'t just attacking. They were herding us, towards the hills.'],
-      ['narrator','Beyond the camp, a stone doorway leads down into the hillside. The bell rings again from somewhere inside.'],
-      ['silas','Down is usually where the money is.'],
-      ['lord','Then that\'s where we go. Stay close.']]},
-  2:{pre:[
-      ['narrator','The stairs end in a maze of wet stone. Every wall is carved with names.'],
-      ['maren','Some of these are scratched out. Some of them look fresh.'],
-      ['silas','That one\'s... no. Never mind. Keep moving.'],
-      ['oti','Something big is breathing down here. I can hear it through the walls.'],
-      ['kestrel','Listen. Fighting, off to the east. Something hissing.'],
-      ['lord','Watch the floor and the corners. We find the way through and keep going.']],
-    post:[
-      ['narrator','The last corridor opens into a vast round hall. Something enormous shifts in the dark at its centre.'],
-      ['oti','That\'s what I heard breathing.'],
-      ['lord','Then that\'s what stands between us and the way out.']]},
-  3:{pre:[
-      ['narrator','The Minotaur rises from its throne, dragging a great double-headed axe across the stone.'],
-      ['dax','Now that is an axe.'],
-      ['lord','Bring it down and it\'s yours.']],
-    post:[
-      ['narrator','The Minotaur falls, and its axe clatters across the floor.'],
-      ['dax','Told you.'],
-      ['narrator','Dax takes the Labrys.'],
-      ['narrator','Behind the throne, a sealed door grinds open onto vaults full of old treasure.'],
-      ['silas','Now we\'re talking.']]},
-  4:{pre:[
-      ['narrator','The vaults are full of chests, left behind by the people whose names are on the walls.'],
-      ['maren','It feels like robbing graves.'],
-      ['silas','Graves don\'t need swords. We do.']],
-    post:[
-      ['narrator','At the end of the vaults, stairs climb towards daylight.'],
-      ['iona','There\'s light up ahead. Wind, too.'],
-      ['narrator','The tunnel opens onto a cliff above a sea of cloud. Wedged in the rocks lies a wrecked ship with torn sails, and someone is hammering at its hull.'],
-      ['silas','A ship that flies. Now that would be worth something.'],
-      ['lord','Whoever that is, they\'re about to have company. Let\'s move.']]},
-  5:{pre:[
-      ['gruu','You! Don\'t just stand there gawking. Can any of you fight?'],
-      ['lord','Better than most. Who are you?'],
-      ['gruu','Gruu. This is my second Nightmare, and my second crew. The Aranaea took the first one. Spider folk. They tangled my ship in their webs and dragged my people below.'],
-      ['gruu','Give me five turns of quiet and I can get her flying. The dead are already climbing the cliff.'],
-      ['silas','A flying ship and a captain who knows the way out. Lucky us.']],
-    post:[
-      ['gruu','That\'s it. She\'ll hold. Everyone aboard!']]},
-  6:{pre:[
-      ['gruu','Hold on to something. The sky here has teeth.'],
-      ['kestrel','Wings. Lots of them, coming out of the clouds!'],
-      ['gruu','Bows to the rails! Those things hate arrows.']],
-    post:[
-      ['narrator','The ship breaks out of the storm. Ahead, light pours from a palace floating in the clouds.'],
-      ['gruu','That\'s the way out. Every Nightmare has one. This is as far as I go; the ship stays with me.'],
-      ['gruu','We\'ll meet again. Gruu always finds his crew.'],
-      ['narrator','Gruu sets them down at the palace gates and turns the ship back into the clouds.']]},
-  7:{pre:[
-      ['narrator','The palace is full of light, the first real light since the bell. Its walls curl like the inside of a shell.'],
-      ['maren','Is this it? The way home?'],
-      ['silas','For some of us.'],
-      ['narrator','On the throne sits a snail the size of a house. Its eyes glow violet, and so do Silas\'s.'],
-      ['narrator','A wall of light slams down between {lord} and the others.'],
-      ['silas','It\'s in my head. It\'s been whispering since the labyrinth. I can\'t... stop...'],
-      ['lord','Then I\'ll knock it out of you. Hold on, Silas.']],
-    freed:[
-      ['narrator','Silas staggers. On the throne, the great snail shrieks as its hold on him snaps.'],
-      ['silas','I\'m sorry. It\'s been in my head since the names on the walls.'],
-      ['lord','You\'re back. Now let\'s finish it.'],
-      ['narrator','The wall of light shatters, and the Fallen pour through every door.'],
-      ['maren','We\'re with you. Both of you.']],
-    mid:[
-      ['silas','Thank... you...'],
-      ['narrator','On the throne, the great snail shrieks as its puppet falls.'],
-      ['narrator','The wall of light shatters. The others rush in, and the Fallen pour through every door.'],
-      ['maren','We\'re with you. Let\'s finish this.']],
-    post:[
-      ['narrator','The Shell Matriarch cracks and falls still, and the last of the Fallen crumble to ash.'],
-      ['narrator','Light fills the palace, and the bell rings one last time.'],
-      ['lord','We\'re going home.'],
-      ['narrator','{lord} wakes in their own bed. A week until the next bell.'],
-      ['narrator','End of the first Nightmare.']]}
-};
+/* Battles are generated per run (see RUN below). CH holds the current battle only. */
+const CH=[];
+const STORY={};
 
 /* ================= STATE ================= */
 let state,history=[],rewinds=3,chStart=null,MAP=[],MW=8,MH=11;
@@ -801,7 +600,13 @@ const clone=o=>JSON.parse(JSON.stringify(o));
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 const man=(a,b)=>Math.abs(a.x-b.x)+Math.abs(a.y-b.y);
-const rn=()=>Math.random()*100;
+/* Seeded RNG (mulberry32): every roll in a run comes from the run's seed, so a run can be replayed. */
+let rngS=1;
+function seedRng(v){rngS=(v>>>0)||1}
+function rand(){rngS=(rngS+0x6D2B79F5)>>>0;let t=rngS;t=Math.imul(t^t>>>15,t|1);t^=t+Math.imul(t^t>>>7,t|61);return((t^t>>>14)>>>0)/4294967296}
+const rn=()=>rand()*100;
+const ri=(a,b)=>a+Math.floor(rand()*(b-a+1));
+const pick=a=>a[Math.floor(rand()*a.length)];
 const unitAt=(x,y)=>state.units.find(u=>u.x===x&&u.y===y&&u.hp>0);
 const byId=id=>state.units.find(u=>u.id===id);
 const ter=(x,y)=>TER[MAP[y][x]];
@@ -820,7 +625,7 @@ function recruitGreen(id,x,y){return Object.assign(recruitFoe(id,x,y),{team:'g'}
 /* ================= PIXEL ART ================= */
 const OUT='#1a1420',SKIN='#f3cfa6',SKIN2='#d6a07a',METAL='#c3cad6',METAL2='#7f889b',BROWN='#7a5230',BROWN2='#4f331d',GOLD='#e2b553',CREAM='#efe6cf',JADE='#5fc2a0',RED='#c8322e',INK='#2a2230';
 const TEAMC={p:{a:'#3a7cc0',A:'#22507f',s:'#ece6d4'},e:{a:'#4a3d66',A:'#2a2140',s:'#1c1826'},g:{a:'#3f8f5a',A:'#25603a',s:'#e6efd8'}};
-const ELC={light:'#fff2b0',fire:'#ff8a3c',water:'#4fb2ff',wind:'#7fe0a8',earth:'#c9a060',lightning:'#ffe14a',illusion:'#c58aff',spirit:'#bff5e0'};
+const ELC={dark:'#9a6ad8',nature:'#7fd36a',light:'#fff2b0',fire:'#ff8a3c',water:'#4fb2ff',wind:'#7fe0a8',earth:'#c9a060',lightning:'#ffe14a',illusion:'#c58aff',spirit:'#bff5e0'};
 function shade(h,f){const n=parseInt(h.slice(1),16);const c=[n>>16,(n>>8)&255,n&255].map(v=>clamp(Math.round(v*f),0,255));return'#'+c.map(v=>v.toString(16).padStart(2,'0')).join('')}
 function Px(w,h){const g=new Array(w*h).fill(null);const P={w,h,g,
   set(x,y,c){x=Math.floor(x);y=Math.floor(y);if(x>=0&&y>=0&&x<w&&y<h)g[y*w+x]=c},
@@ -871,7 +676,7 @@ function drawWeapon(p,w,ax,ay,strike,back){
   if(k==='spirit'){p.ell(ax+2,ay-3,2.4,2.4,w.tint==='mend'?'#7ad6ff':JADE);p.set(ax+1,ay-4,'#ffffff');if(strike){p.set(ax+6,ay-8,'#e9fff5');p.set(ax-1,ay-9,'#e9fff5');p.set(ax+7,ay-2,'#e9fff5')}}
 }
 function hairFront(p,L,hair,hair2,TC,cloth){
-  const s=L.style,g=L.gear,cov=g==='helm'||g==='douli'||g==='hood'||g==='veil';
+  const s=L.style,g=L.gear,cov=g==='helm'||g==='douli'||g==='hood'||g==='veil'||g==='cap';
   if(!cov&&s!=='bald'){p.ell(15.5,7.6,5.6,4,hair,(x,y)=>y<=8);p.rect(10,8,3,5,hair);p.set(17,8,hair);p.set(19,8,hair)}
   if(s==='bald')p.set(14,6,'#fff3e0');
   if(!cov){
@@ -888,6 +693,8 @@ function hairFront(p,L,hair,hair2,TC,cloth){
   if(g==='helm'){p.ell(15.5,7.6,6,5,METAL,(x,y)=>y<=8);p.rect(9,8,13,2,METAL2);p.rect(10,9,3,5,METAL2);p.line(15,3,15,1,METAL2);p.ell(15.5,0.8,2,1.5,RED)}
   if(g==='douli'){p.poly([[5,9],[26,9],[15.5,1]],'#c9a46a');p.line(9,8,15.5,2,'#a8844c');p.line(22,8,15.5,2,'#a8844c');p.rect(8,9,15,1,'#8a6a3c')}
   if(g==='hood'||g==='veil'){const hc=g==='veil'?'#3a2a4a':cloth;p.ell(15.5,7,6.6,4,hc,(x,y)=>y<=7);p.rect(10,7,3,8,hc)}
+  if(g==='cap'){const cc=shade(cloth,.8);p.ell(15.5,6.5,5.8,3.2,cc,(x,y)=>y<=7);p.rect(8,7,15,2,shade(cc,.8));p.rect(10,9,2,3,hair);p.line(18,4,24,0,CREAM);p.line(19,4,25,1,'#d8d0bc');p.set(24,0,RED)}
+  if(g==='circlet'){p.rect(10,6,12,1,GOLD);p.set(15,5,GOLD);p.set(16,5,GOLD);p.set(15,6,'#9fd8ff');p.set(16,6,'#9fd8ff')}
   if(L.beard){p.rect(16,14,3,3,hair);p.rect(17,12,3,1,hair)}
 }
 const sprCache={};
@@ -898,6 +705,16 @@ function fig(L,cls,team,pose,wk){
     p.poly([[3,30],[29,30],[27,25],[6,24]],b);p.rect(4,29,24,1,b2);
     p.ell(18,18,9.5,9.5,sh);p.ring(18,18,7,sh2);p.ring(19,18,4.5,sh2);p.ring(19.5,18.5,2.2,sh2);p.line(10,22,26,22,shade(sh,.85));
     p.ell(7+lean,24,4,3.5,b);p.line(6+lean,21,4+lean,12,b2);p.line(9+lean,21,11+lean,12,b2);p.ell(4+lean,11,1.8,1.8,ey);p.ell(11+lean,11,1.8,1.8,ey);
+    p.outline(OUT);return p.url()}
+  if(body==='beast'){const f=L.fur||'#8a8f9a',f2=shade(f,.7),f3=shade(f,1.25),ey=L.eye||'#ffd23f',ln=strike?3:0;
+    p.poly([[6+ln,17],[1+ln,11],[2+ln,9],[8+ln,15]],f2);
+    p.rect(8+ln,22,2,7,f2);p.rect(18+ln,22,2,7,f2);
+    p.ell(14+ln,19,8,4.6,f);p.ell(14+ln,21.5,5,1.6,f3);p.line(9+ln,16,18+ln,15,f2);
+    p.rect(11+ln,22,2,7,f);p.rect(21+ln,22,2,7,f);p.rect(7+ln,29,3,1,f2);p.rect(10+ln,29,3,1,f);p.rect(17+ln,29,3,1,f2);p.rect(20+ln,29,3,1,f);
+    p.ell(23+ln,14,4.6,4.4,f);p.poly([[25+ln,12],[31,14],[31,17],[25+ln,18]],f);p.rect(26+ln,17,5-ln,1,f3);
+    p.poly([[19+ln,11],[20+ln,5],[23+ln,10]],f2);p.poly([[23+ln,10],[25+ln,5],[26+ln,11]],f);p.set(24+ln,8,'#c87a7a');
+    p.rect(25+ln,12,2,1,ey);p.set(31,14,OUT);
+    if(strike){p.line(27,17,31,19,'#c8322e');p.set(28,18,'#ffffff');p.set(30,18,'#ffffff')}
     p.outline(OUT);return p.url()}
   if(body==='gremlin'){const c=sk,c2=shade(sk,.72),cl='#e8e2d0',st=strike?3:0;
     p.ell(16,24,6,5,c);p.ell(16,17,5,4.5,c);p.poly([[12,16],[4,10],[12,13]],c2);p.poly([[20,16],[28,10],[20,13]],c2);
@@ -951,14 +768,15 @@ function iconArt(k){
   if(kd==='spirit'){p.ell(8,8,5,5,w.tint==='mend'?'#7ad6ff':JADE);p.ell(6.5,6.5,1.5,1.5,'#e9fff5')}
   if(kd==='scroll'){p.rect(3,4,10,8,'#e9dcb4');p.rect(3,4,10,1,'#cbb98a');p.ell(3,8,1.6,4.2,'#b89f68');p.ell(13,8,1.6,4.2,'#b89f68');p.line(5,7,11,7,'#8a7a5a');p.line(5,9,10,9,'#8a7a5a');p.rect(7,11,2,3,RED)}
   if(kd==='crest'){p.poly([[8,1],[12,5],[13,11],[3,11],[4,5]],GOLD);p.poly([[8,2],[10,5],[11,10],[8,10]],'#f3dc9a');p.rect(2,11,12,2,'#b8912f');p.ell(8,14,1.6,1.4,'#9fd8ff')}
+  if(kd==='claw'){for(let i=0;i<3;i++)p.line(3+i*4,14,7+i*3,3,'#e8e2d0',1);p.line(3,14,13,14,'#8a7a5a')}
   if(kd==='pill'){p.ell(8,11,4.5,4,'#c98a3a');p.ell(8,5,2.6,2.4,'#c98a3a');p.rect(7,1,2,2,RED);p.set(6,10,'#f3d9a6')}
   if(w.thrown)p.set(1,1,GOLD);
   p.outline(OUT);return p.url();
 }
 function mapWk(u){const i=u.items.findIndex(it=>WTYPES.includes(IT[it.k].t)||IT[it.k].t==='spirit');return i>=0?u.items[i].k:null}
-function sprite(u,pose,wk){const k=[u.id,u.name,u.cls,u.team,pose,wk].join('|');return sprCache[k]||(sprCache[k]=fig(u.look,u.cls,u.team,pose,wk))}
+function sprite(u,pose,wk){const k=[u.id,u.name,u.cls,u.team,pose,wk,JSON.stringify(u.look)].join('|');return sprCache[k]||(sprCache[k]=fig(u.look,u.cls,u.team,pose,wk))}
 function portraitArt(L,cls,team){return fig(L,cls,team,'idle',null)}
-function portrait(u){if(u.pic&&PICS[u.pic])return PICS[u.pic];const k='P|'+u.id+'|'+u.name+'|'+u.cls+'|'+u.team;return sprCache[k]||(sprCache[k]=portraitArt(u.look,u.cls,u.team))}
+function portrait(u){if(u.pic&&PICS[u.pic])return PICS[u.pic];const k='P|'+u.id+'|'+u.name+'|'+u.cls+'|'+u.team+'|'+JSON.stringify(u.look);return sprCache[k]||(sprCache[k]=portraitArt(u.look,u.cls,u.team))}
 function picOf(h){return h.pic&&PICS[h.pic]?PICS[h.pic]:portraitArt(h.look,h.cls,'p')}
 function icon(k){const c='I|'+k;return sprCache[c]||(sprCache[c]=iconArt(k))}
 
@@ -1104,6 +922,7 @@ function resolve(a,ai,d){
       dmg=Math.min(dmg,hp[o]);hp[o]-=dmg;e.dmg=dmg;
       if(has(X,'stone')&&hp[o]>0&&rn()<X.skl){e.stone=true;e.proc=e.proc||SKILLS.stone.n}
       if(has(X,'siphon')&&dmg>0&&rn()<X.skl*2){e.proc=SKILLS.siphon.n;e.heal=Math.min(dmg,mx[s]-hp[s]);hp[s]+=e.heal}
+      const XW=s==='a'?f.aw:f.dw;if(XW&&XW.drain&&dmg>0){const dh=Math.min(Math.ceil(dmg/4),mx[s]-hp[s]);if(dh>0){hp[s]+=dh;e.heal+=dh}}
     }
     e.hpA=hp.a;e.hpD=hp.d;e.broke=U[s]-used[s]<=0;ev.push(e);
   }
@@ -1210,7 +1029,7 @@ function render(){
     el.querySelector('.hpb i').style.width=(u.hp/u.maxhp*100)+'%';
   }
   for(const id in uEls)if(!live.has(id)){uEls[id].remove();delete uEls[id]}
-  $('#turn').textContent=`Ch ${state.ch+1} · Turn ${state.turn}`+(phase==='enemy'?' · Enemy':'');
+  $('#turn').textContent=`Battle ${run?run.n:1} · Turn ${state.turn}`+(phase==='enemy'?' · Enemy':'');
   $('#obj').innerHTML=`<div><b>Goal</b>${goalShort()}</div><div><b>Lose</b>${loseText()}</div>`;
   const idle=phase==='player'&&!busy&&!over;
   $('#btnRewind').hidden=!settings.rewind;$('#btnRewind').textContent='Rewind '+rewinds;$('#btnRewind').disabled=!(idle&&rewinds>0&&history.length);
@@ -1604,11 +1423,12 @@ function cycleSvg(nodes,R,lab){
 }
 function typeChart(){
   const wpn=cycleSvg([{l:'Blades',c:'#c9d3e2',icons:['ironJian','ironDao']},{l:'Heavy',c:'#d8b88a',icons:['ironAxe','ironJi']},{l:'Polearms',c:'#e0a49a',icons:['ironSpear','javelin']}],70,'Weapon cycle');
-  const ele=cycleSvg(['water','fire','lightning','wind','earth'].map(e=>({l:ELN[e],c:ELC[e]})),75,'Element cycle');
+  const ele=cycleSvg(['fire','nature','water'].map(e=>({l:ELN[e],c:ELC[e]})),70,'Element cycle');
   const ic=k=>`<img src="${icon(k)}" alt="" style="width:22px;height:22px;image-rendering:pixelated;vertical-align:middle">`;
   return modal(`<div class="eyebrow">Type chart</div><h2>Weapons</h2>${wpn}
    <p>Each arrow points at what it beats. Advantage gives +15 Hit and +1 damage.</p>
    <h2>Arts</h2>${ele}
+   <p><b>Light</b> beats <b>Dark</b>. Dark is neutral to everything else, but heals its user for a quarter of the damage it deals.</p>
    <p><b>Neutral:</b> ${['shortBow','crossbow','whip','chainBlade','ironFan','parasol','mirageT'].map(ic).join('')} bows, crossbows, reach weapons and Illusion. Arts against weapons are always neutral.</p>
    <div class="mbtns"><button class="go" type="button" data-m="ok">Close</button></div>`);
 }
@@ -1675,9 +1495,9 @@ function goalShort(){const c=CH[state.ch],g=c.goal||'boss',b=state.units.find(u=
   if(g==='reach')return'Reach the exit';
   if(g==='duel')return state.stage===2?`Rout · ${foesLeft()} left`:'Break Silas free';
   return`Defeat ${b?b.name.replace(/^(The|Captain|Matron) /,'').replace(/ the .*/,''):'boss'}`}
-function loseText(){const c=CH[state.ch];return c.protect?`${lordName()} or ${heroDef(c.protect)?.name||c.protect} falls`:`${lordName()} falls`}
+function loseText(){return'Every unit falls'}
 function checkEnd(){if(over)return;const c=CH[state.ch];
-  if(!state.units.some(u=>u.lord)||(c.protect&&!protectU())){over='lose';render();loseScreen();return}
+  if(!state.units.some(u=>u.team==='p')){over='lose';render();loseScreen();return}
   if(c.goal==='duel'&&state.stage!==2&&!state.units.some(u=>u.id==='silas'&&u.team==='e')){stageTwo();return}
   if(goalWon()){over='win';render();winScreen()}}
 function spawnWaves(t){const w=CH[state.ch].waves;if(!w||!w[t])return;const taken=new Set(state.units.map(u=>key(u.x,u.y)));
@@ -1736,8 +1556,8 @@ async function runAI(team){
 }
 
 /* ================= CHAPTERS / SAVE ================= */
-const SAVE='nightbound.save.v1',OPTS='nightbound.opts';
-function saveGame(){try{localStorage.setItem(SAVE,JSON.stringify({state,rewinds,chStart}))}catch(_){}}
+const SAVE='embermarch2.save.v1',OPTS='embermarch2.opts';
+function saveGame(){if(!run)return;try{localStorage.setItem(SAVE,JSON.stringify({state,rewinds,chStart,run,def:CH[0],rng:rngS}))}catch(_){}}
 function loadGame(){try{return JSON.parse(localStorage.getItem(SAVE))}catch(_){return null}}
 function setMap(){MAP=CH[state.ch].map;MW=MAP[0].length;MH=MAP.length}
 function setupChapter(ci,roster){
@@ -1758,7 +1578,7 @@ function npc(id,x,y,o){return Object.assign(mkHero(heroDef(id)),{team:'g',x,y,ho
 function enterMap(){setMap();over=null;phase='player';busy=false;ui='idle';clearSel();buildBoard();render();requestAnimationFrame(()=>initCam())}
 async function chapterIntro(){
   const c=CH[state.ch];
-  await modal(`<div class="eyebrow">Chapter ${state.ch+1}</div><h2>${c.title}</h2><p>${c.intro.replaceAll('{lord}',lordName())}</p><div class="lvl" style="grid-template-columns:1fr"><div><span style="color:var(--gold)">Goal</span><span>${goalText().replace(/<[^>]+>/g,' ').trim()}</span></div><div><span style="color:var(--red)">Lose</span><span>${loseText()}</span></div></div><div class="mbtns"><button class="go" type="button" data-m="go">Begin</button></div>`);
+  await modal(`<div class="eyebrow">Act 1 · Battle ${run.n} of ${RUN_LEN}</div><h2>${c.title}</h2><p>${c.intro.replaceAll('{lord}',lordName())}</p><div class="lvl" style="grid-template-columns:1fr"><div><span style="color:var(--gold)">Goal</span><span>${goalText().replace(/<[^>]+>/g,' ').trim()}</span></div><div><span style="color:var(--red)">Lose</span><span>${loseText()}</span></div></div><div class="mbtns"><button class="go" type="button" data-m="go">Begin</button></div>`);
   banner('Player Phase','p');saveGame();
   if(state.ch===0)tip('basics','Moving your units','Tap a blue unit to see where it can go: blue tiles are moves, red tiles are what it can hit. Tap a tile to move there, or tap a red enemy to attack it straight away. Dead woods give +20 Avoid and +1 Def, so fight from the trees when you can.');
   if(state.ch===1)tip('defend','Hold the camp','You win by surviving: the goal counts the turns. Plug the gaps in the palisade, and expect new enemies every turn.');
@@ -1766,41 +1586,221 @@ async function chapterIntro(){
   if(state.ch===6)tip('fliers','Fliers','Fliers cross open sky and ignore terrain bonuses. Bows deal triple damage to them.');
   if(state.ch===1)tip('items','Villages, chests and recruits','Move any unit onto a village or chest and choose Visit or Open to collect an item. Under Items you can equip weapons, use Salves and learn skills from scrolls. Some enemies can be recruited: put your lord next to them and choose Talk.');
 }
-function mkLord(sex){const L=LORDS[sex],u=mkHero(heroDef('lord'));u.name=L.name;u.look=clone(L.look);u.pic=L.pic;u.items[0]={k:L.weapon,u:IT[L.weapon].uses};return u}
-function newParty(sex){return START_PARTY.map(id=>id==='lord'?mkLord(sex):mkHero(heroDef(id)))}
-/* ---- save slots ---- */
-const SLOTS='nightbound.slots.v1',NSLOTS=3;
-function readSlots(){try{const s=JSON.parse(localStorage.getItem(SLOTS));if(Array.isArray(s))return s}catch(_){}return Array(NSLOTS).fill(null)}
-function writeSlots(s){try{localStorage.setItem(SLOTS,JSON.stringify(s))}catch(_){}}
-function slotRow(s,i){
-  if(!s)return`<button type="button" class="it" data-m="s${i}"><b>Slot ${i+1}</b><span class="u">Empty</span></button>`;
-  const d=new Date(s.date);
-  return`<button type="button" class="it" data-m="s${i}"><b>Slot ${i+1}</b>&nbsp;${s.lord} · Ch ${s.ch+1} ${CH[s.ch]?.title||''}<span class="u">${s.roster.length} units · ${d.toLocaleDateString()}</span></button>`;
-}
-async function saveScreen(nextCh,roster){
-  for(;;){
-    const sl=readSlots();
-    const m=await modal(`<div class="eyebrow">Chapter ${nextCh} complete</div><h2>Save your progress</h2><p>Choose a slot. Saving here lets you replay from the start of Chapter ${nextCh+1} at any time.</p><div class="inv">${sl.map(slotRow).join('')}</div><div class="mbtns"><button type="button" data-m="skip">Don't save</button></div>`);
-    if(m==='skip')return;
-    const i=+m.slice(1);
-    if(sl[i]){const c=await modal(`<h2>Overwrite Slot ${i+1}?</h2><p>It holds ${sl[i].lord}'s campaign at Chapter ${sl[i].ch+1}.</p><div class="mbtns"><button type="button" data-m="no">Back</button><button class="go" type="button" data-m="yes">Overwrite</button></div>`);if(c!=='yes')continue}
-    sl[i]={ch:nextCh,roster:clone(roster),lord:roster.find(u=>u.lord)?.name||'',date:Date.now()};writeSlots(sl);sfx('item');toast(`Saved to Slot ${i+1}`);return;
-  }
-}
-async function loadScreen(){
-  const sl=readSlots();
-  const m=await modal(`<h2>Load game</h2><p>Each slot starts at the beginning of its chapter.</p><div class="inv">${sl.map(slotRow).join('')}</div><div class="mbtns"><button type="button" data-m="back">Back</button></div>`);
-  if(m==='back')return 'back';
-  const s=sl[+m.slice(1)];if(!s)return loadScreen();titleEl.hidden=true;
-  await beginChapter(s.ch,clone(s.roster));
-}
-async function beginChapter(ci,roster){
-  setupChapter(ci,roster);
-  if(CH[ci].scene&&SCENES[CH[ci].scene])await SCENES[CH[ci].scene]();
-  await playStory(STORY[ci]&&STORY[ci].pre);
-  await chapterIntro();
+/* ================= RUN (roguelike) ================= */
+/* Act 1: RUN_LEN battles, the last one a boss. Units, classes, looks and enemies are generated from the run's seed. */
+const RUN_LEN=5,TEAM_CAP=6;
+let run=null;
+
+/* ---- classes from parts: role + movement + weapon ---- */
+/* b = base stats, gr = growth ranges (%), both in ST order: HP Str Mag Skl Spd Lck Def Res */
+const ROLES={
+  bruiser:{n:'Brute',n2:'Ravager',w:['blade','heavy','pole'],body:'vest',crit:5,skills:['fury','swift','brace'],
+    b:[21,7,0,4,4,2,4,1],gr:[[75,95],[45,65],[0,10],[30,45],[30,45],[15,35],[20,35],[5,20]],bonus:[5,3,0,1,2,0,2,1]},
+  tank:{n:'Guard',n2:'Bastion',w:['blade','heavy','pole'],body:'armor',skills:['brace','fury'],
+    b:[22,6,0,3,2,1,7,1],gr:[[80,100],[40,55],[0,10],[25,40],[15,30],[15,30],[35,50],[5,20]],bonus:[6,2,0,1,1,0,4,2]},
+  skirm:{n:'Skirmisher',n2:'Duelist',w:['blade','pole','bow'],body:'tunic',crit:10,skills:['swift','focus','deadeye'],
+    b:[18,5,0,7,8,4,3,2],gr:[[60,80],[35,50],[0,15],[45,65],[50,70],[30,50],[15,30],[15,30]],bonus:[3,2,0,3,3,0,1,2]},
+  caster:{n:'Sigilist',n2:'Runelord',w:['art'],body:'robe',skills:['kindle','focus','swift'],
+    b:[17,0,6,5,5,3,2,5],gr:[[55,70],[0,10],[45,65],[35,50],[35,55],[20,40],[10,20],[35,55]],bonus:[3,0,3,2,1,0,1,3]},
+  support:{n:'Mender',n2:'Lightbearer',w:['spirit'],body:'robe',skills:['renewal','brace','kindle'],
+    b:[17,0,5,4,6,5,1,6],gr:[[50,65],[0,10],[40,55],[30,45],[40,55],[40,60],[10,20],[40,60]],bonus:[4,0,2,1,2,0,1,3]}
+};
+const MOVES={foot:{mov:5},armour:{pre:'Iron',mov:4,st:[2,1,0,0,-2,0,3,0]}};
+const WN={blade:'Blade',heavy:'Axe',pole:'Lance',bow:'Bow'};
+const SEC={blade:'pole',heavy:'blade',pole:'heavy',bow:'blade',art:'spirit'};
+const KIT={blade:['ironJian','twinBlades','needle','ironDao'],heavy:['ironAxe','ironJi'],pole:['ironSpear','javelin'],bow:['shortBow','crossbow'],art:['flameT','natureT','tideT','lightT','darkT']};
+/* Class keys look like G.role.move.weapon.tier and are rebuilt on demand, so saves only store the key. */
+function ensureCls(k){
+  if(CLS[k]||!k.startsWith('G.'))return k;
+  const[,r,m,w,t]=k.split('.'),R=ROLES[r],M=MOVES[m],t2=t==='2';
+  const ws=w==='spirit'?['spirit','art']:[w];if(t2&&SEC[w]&&!ws.includes(SEC[w]))ws.push(SEC[w]);
+  CLS[k]={n:(M.pre?M.pre+' ':'')+(WN[w]?WN[w]+' ':'')+(t2?R.n2:R.n),w:ws,body:m==='armour'?'armor':R.body,mov:M.mov+(t2?1:0),crit:R.crit||0};
+  if(t2)Object.assign(CLS[k],{tier:2,bonus:R.bonus});else{CLS[k].promo=`G.${r}.${m}.${w}.2`;ensureCls(CLS[k].promo)}
+  return k;
 }
 
+/* ---- names ---- */
+const NA=['Ael','Bran','Cor','Dar','El','Fen','Gar','Hal','Is','Jor','Kael','Lir','Mor','Nym','Or','Per','Ryn','Sel','Tor','Ul','Vey','Wyn','Yr','Zan','Ash','Bel','Cy','Ed','Mar','Thal'];
+const NB=['a','an','ric','wyn','eth','is','or','ira','en','ius','elle','ard','as','yn','orn','ia','ith','os','ene','ren'];
+const genName=()=>pick(NA)+pick(NB);
+const BOSSN=['Gorvak','Bruul','Hraxa','Murgh','Tarvos','Kragga'],BOSST=['the Horned','Bloodhoof','the Ironhide','of the Maze'];
+
+/* ---- random looks: hair, headgear, outfit colours, skin, extras ---- */
+const SKINS=['#f6dcc4','#f3cfa6','#e8b98f','#c98e62','#a8714a','#7a4e32'];
+const HAIRC=['#1d1a24','#3a2a20','#6b4226','#a8743a','#d9b25a','#e8e2d0','#8a2a22','#3a4a6a','#c9c3cf','#4a2a4a'];
+const CLOTH=['#3a7cc0','#4a8a5a','#8a3a3a','#6a4a8a','#a8743a','#3a6a7a','#7a6a4a','#8a5a7a','#4a5a3a','#5a6a8a','#2f4f6f','#9a4a2a'];
+const SASH=['#e2b553','#c8322e','#efe6cf','#5fc2a0','#2a2230','#9fd8ff'];
+const EYES=['#2a2230','#3a5a8a','#3a6a3a','#6a3a2a','#5a4a7a'];
+const GEAR={bruiser:['headband','none','none','circlet'],tank:['helm','helm','none','headband'],skirm:['hood','ribbon','headband','cap','none'],
+  caster:['hood','veil','hairpin','guan','circlet','none'],support:['veil','hairpin','circlet','hood','none']};
+function genLook(role,mv,w){
+  const st=pick(['long','bun','tail','wild','topknot','short','short','bald']);
+  let gear=pick(GEAR[role]);if(w==='bow'&&rand()<.4)gear='cap';if(mv==='armour'&&rand()<.4)gear='helm';
+  const L={style:st,gear:gear==='none'?undefined:gear,hair:pick(HAIRC),skin:pick(SKINS),cloth:pick(CLOTH),sash:pick(SASH),eye:pick(EYES)};
+  if(rand()<.2&&st!=='long')L.beard=true;
+  if(rand()<.25)L.cape=true;
+  return L;
+}
+
+/* ---- units ---- */
+function startItems(role,w){
+  if(role==='support')return[{k:'spiritMend',u:IT.spiritMend.uses},{k:'lightT',u:IT.lightT.uses}];
+  const k=pick(KIT[w]);return[{k,u:IT[k].uses},{k:'qiPill',u:IT.qiPill.uses}];
+}
+function genUnit(lv,role){
+  role=role||pick(Object.keys(ROLES));const R=ROLES[role],w=pick(R.w);
+  const mv=(role==='caster'||role==='support'||w==='bow')?'foot':(rand()<(role==='tank'?.6:.15)?'armour':'foot');
+  const cls=ensureCls(`G.${role}.${mv}.${w}.1`),M=MOVES[mv];
+  const s=R.b.map(v=>Math.max(0,v+ri(-1,1)));if(M.st)M.st.forEach((d,i)=>s[i]=Math.max(0,s[i]+d));
+  const g=R.gr.map(([a,b])=>ri(a,b));
+  const u={id:'u'+(run.uid++),name:genName(),cls,team:'p',lv:1,exp:0,skill:pick(R.skills),skills:[],cap:BASE_CAP,look:genLook(role,mv,w),g,mov:CLS[cls].mov,items:startItems(role,w),acted:false,x:0,y:0};
+  ST.forEach((k,i)=>u[k]=s[i]);u.maxhp=u.hp;
+  for(;u.lv<lv;u.lv++)ST.forEach((k,i)=>{if(rand()*100<g[i]){if(k==='hp')u.maxhp++;else u[k]++}});
+  u.hp=u.maxhp;return u;
+}
+
+/* ---- monsters ---- */
+Object.assign(CLS,{
+  Wolf:{n:'Wolf',w:['blade'],body:'beast',mov:6,crit:5},
+  Harpy:{n:'Harpy',w:['blade'],body:'robe',mov:6,fly:true},
+  LamiaM:{n:'Lamia',w:['art'],body:'serpent',mov:5},
+  MinotaurM:{n:'Minotaur',w:['heavy'],body:'vest',mov:4,crit:10}
+});
+IT.fangs={n:'Fangs',t:'blade',kind:'claw',mt:5,hit:85,crit:5,r:[1,1],uses:99,key:'fangs'};
+IT.talons={n:'Talons',t:'blade',kind:'claw',mt:4,hit:90,crit:5,r:[1,1],uses:99,key:'talons'};
+Object.assign(FOE,{
+  Wolf:{b:[15,5,0,3,7,1,2,0],g:[.55,.35,0,.3,.45,.1,.15,.05],items:['fangs'],look:{}},
+  Harpy:{b:[16,5,0,5,6,2,1,2],g:[.5,.35,0,.35,.4,.15,.1,.2],items:['talons'],look:{}},
+  LamiaM:{b:[18,0,5,4,4,1,3,4],g:[.6,0,.4,.3,.3,.1,.15,.3],items:['natureT'],look:{}},
+  MinotaurM:{b:[24,8,0,3,2,0,5,0],g:[.8,.5,0,.25,.15,.05,.3,.05],items:['ironAxe'],look:{}}
+});
+function monLook(c){
+  if(c==='Wolf')return{fur:pick(['#8a8f9a','#6b5a48','#3a3640','#c9c3b8','#9a7a52']),eye:'#ffd23f'};
+  if(c==='Harpy'){const wg=pick(['#6b5240','#55607a','#7a5a7a','#4a4a3a']);return{style:'wild',hair:pick(HAIRC),skin:pick(['#c9b6a0','#a9a3c0','#b8c4a8']),wing:wg,cloth:wg,eye:'#ffd23f'}}
+  if(c==='LamiaM')return{style:pick(['long','tail','wild']),hair:pick(HAIRC),tail:pick(['#4f8a5a','#3a7a7a','#7a5aa0','#8a7a3a']),cloth:pick(CLOTH),skin:pick(['#d6c0a0','#b8c8a8','#c9b6a0']),eye:'#ffd23f'};
+  return{style:'bald',horns:true,beard:true,hair:'#2a1a14',skin:pick(['#7a4e32','#5a3a2a','#8a6a4a']),cloth:'#4a3a2a',eye:'#ff5a3a'};
+}
+function mkMon(c,lv){const u=foe(c,lv,0,0);u.look=monLook(c);if(c==='LamiaM')u.skill='stone';return u}
+
+/* ---- maps ---- */
+const MAPS={
+  ford:{n:'Ford',map:["mm.F..mm","m....f.m",".f....f.","..ww=w..","f.w..w.f","....f...",".f.mm...","......f.","ww=ww.ww","..f....C","F......f"],start:[[3,10],[4,9],[2,9],[4,10],[6,9],[0,9]]},
+  stockade:{n:'Stockade',map:["f..m..f...m.",".f.....f..f.","..###__###..","..#A____A#..","f.#______#.f","..#__F____..","..___A__A#..","f.#______#.f","..#A____C#..","..########..",".f..m..f..f.","...f....m..."],start:[[4,4],[5,4],[6,4],[4,6],[6,6],[7,4]]},
+  vaults:{n:'Vaults',map:["##############","#C__#C_C_#__C#","#___#____#___#","##_###__###_##","#____________#","#_##_m__m_##_#","#_#C______C#_#","#_##_m__m_##_#","#____________#","##_###__###_##","#C__#____#__C#","#___#_F__#___#","##############"],start:[[6,10],[5,10],[7,10],[8,10],[5,11],[6,11]]},
+  meadow:{n:'Meadow',map:["..f....m..f.",".f..ff.....f","....f...m...","m.......f...","..ww=ww.....","..w....w..f.",".f..........","....m...f...",".f.......f..","....f.F....."],start:[[5,9],[4,9],[7,9],[5,8],[3,8],[8,8]]},
+  thicket:{n:'Thicket',map:["m..f...f..m","..f..m..f..",".f...f...f.","...m...m...","f....F....f","..f.....f..","...m.f.m...",".f.......f.","..f..m..f..","...........","m..f...f..m"],start:[[5,10],[4,9],[6,9],[3,10],[7,10],[5,8]]},
+  maze:{n:'Labyrinth Heart',map:["#############","###_______###","##___#_#___##","#__m_____m__#","#_#___T___#_#","#___#___#___#","#__m_____m__#","##_#_____#_##","#____m_m____#","##__#___#__##","###___F___###","####_____####","#############"],start:[[6,11],[5,11],[7,11],[4,11],[8,11],[6,10]]}
+};
+const ADJ=['Howling','Silent','Broken','Ashen','Bitter','Hollow','Moonlit','Drowned'];
+function spawnTiles(m){
+  const out=[];for(let y=0;y<m.map.length;y++)for(let x=0;x<m.map[0].length;x++){const t=TER[m.map[y][x]];if(t.c>=99)continue;const d=Math.min(...m.start.map(([sx,sy])=>Math.abs(sx-x)+Math.abs(sy-y)));if(d>=4)out.push({x,y,d})}
+  for(let i=out.length-1;i>0;i--){const j=Math.floor(rand()*(i+1));[out[i],out[j]]=[out[j],out[i]]}
+  return out;
+}
+function genBattle(n){
+  const bossFight=n>=RUN_LEN,mk=bossFight?'maze':pick(['ford','stockade','vaults','meadow','thicket']),m=MAPS[mk];
+  const pool=[['Wolf',3],['Harpy',2],['LamiaM',n>=2?2:0],['MinotaurM',n>=3?1:0]],tot=pool.reduce((a,p)=>a+p[1],0);
+  const roll=()=>{let r=rand()*tot;for(const[c,w]of pool){if((r-=w)<0)return c}return'Wolf'};
+  const count=Math.min(7,2+n),list=[];
+  while(list.length<count){const c=roll();list.push(c);if(c==='Wolf'&&list.length<count&&rand()<.6)list.push('Wolf')}
+  const bossName=pick(BOSSN)+' '+pick(BOSST);
+  const def={title:bossFight?'The Labyrinth Heart':`The ${pick(ADJ)} ${m.n}`,goal:bossFight?'boss':'rout',map:m.map,start:m.start,gifts:{},
+    intro:bossFight?`${bossName} waits at the centre of the maze. Bring it down to end the act.`:`${count} monsters prowl the ${m.n.toLowerCase()}. Rout them.`};
+  def.foes=()=>{const tiles=spawnTiles(m),out=[];
+    list.forEach((c,i)=>{const lv=Math.max(1,n+(rand()<.3?1:0)-(c==='Wolf'?1:0)),u=mkMon(c,lv),t=tiles[i%tiles.length];u.x=t.x;u.y=t.y;
+      if(rand()<.2){const k=pick(['qiPill','qiPill','steelJian','steelAxe','steelSpear','steelBow']);u.items.push({k,u:IT[k].uses,d:true})}out.push(u)});
+    if(bossFight){let bx=6,by=4;m.map.forEach((r,y)=>{const x=r.indexOf('T');if(x>=0){bx=x;by=y}});
+      out.push(boss({id:'boss',name:bossName,cls:'MinotaurM',lv:6,x:bx,y:by,s:[34,12,0,6,4,2,9,2],items:['steelAxe'],skill:'fury',look:monLook('MinotaurM')}))}
+    return out};
+  return def;
+}
+
+/* ---- UI ---- */
+const uSpr=u=>sprite(u,'idle',mapWk(u));
+function unitCard(u,on){
+  const S=['hp','str','mag','skl','spd','def','res'],w=u.items.map(i=>IT[i.k]).filter(i=>i.t!=='item');
+  return`<div class="dimg"><img src="${uSpr(u)}" alt=""></div><div class="dtxt"><b>${u.name}</b><span class="dcls">${CLS[u.cls].n} · Lv ${u.lv}</span>
+  <span class="dst">${S.map(k=>`${SL[k]} <b>${k==='hp'?u.maxhp:u[k]}</b>`).join(' ')}</span>
+  <span class="dsk">${SKILLS[u.skill].n} · ${w.map(i=>`<img src="${icon(i.key)}" alt="">${i.n}`).join(' ')}</span></div>${on?'<span class="dtick">✓</span>':''}`;
+}
+async function draftPick(opts,need){
+  const chosen=new Set();
+  for(;;){
+    const m=await modal(`<div class="eyebrow">New march · Seed ${run.seed}</div><h2>Choose your squad</h2><p>Pick ${need} of these ${opts.length}. Fallen units are gone for the rest of the run.</p>
+      <div class="draft">${opts.map((u,i)=>`<button type="button" class="dcard${chosen.has(i)?' on':''}" data-m="p${i}">${unitCard(u,chosen.has(i))}</button>`).join('')}</div>
+      <div class="mbtns"><button type="button" data-m="back">Back</button><button class="go" type="button" data-m="go"${chosen.size===need?'':' disabled'}>March (${chosen.size}/${need})</button></div>`);
+    if(m==='back')return null;
+    if(m==='go'&&chosen.size===need)return opts.filter((_,i)=>chosen.has(i));
+    if(m.startsWith('p')){const i=+m.slice(1);if(chosen.has(i))chosen.delete(i);else if(chosen.size<need)chosen.add(i);sfx('tick')}
+  }
+}
+async function recruitNode(){
+  const lv=Math.max(1,Math.round(run.roster.reduce((a,u)=>a+u.lv,0)/run.roster.length)),opts=[genUnit(lv),genUnit(lv),genUnit(lv)];
+  const full=run.roster.length>=TEAM_CAP;
+  const m=await modal(`<div class="eyebrow">Recruit</div><h2>Someone wants to join</h2><p>${full?`Your squad is full (${TEAM_CAP}). Recruiting means letting someone go.`:'Pick one, or march on alone.'}</p>
+    <div class="draft">${opts.map((u,i)=>`<button type="button" class="dcard" data-m="r${i}">${unitCard(u)}</button>`).join('')}</div>
+    <div class="mbtns"><button type="button" data-m="skip">Skip</button></div>`);
+  if(m==='skip')return;
+  const nu=opts[+m.slice(1)];
+  if(full){const d=await modal(`<h2>Who leaves?</h2><p>${nu.name} takes their place.</p><div class="draft">${run.roster.map((u,i)=>`<button type="button" class="dcard" data-m="d${i}">${unitCard(u)}</button>`).join('')}</div><div class="mbtns"><button type="button" data-m="skip">Keep my squad</button></div>`);
+    if(d==='skip')return;run.roster.splice(+d.slice(1),1)}
+  run.roster.push(nu);sfx('item');toast(`${nu.name} joins the march`);
+}
+function giveItem(k){const r=run.roster.filter(u=>u.items.length<5).sort((a,b)=>a.items.length-b.items.length)[0];if(!r)return null;r.items.push({k,u:IT[k].uses});return r}
+function battleRewards(){
+  const out=[],add=k=>{const r=giveItem(k);if(r)out.push(`<b>${IT[k].n}</b> → ${r.name}`)};
+  if(run.n===2||run.n===4)add('crest');
+  if(rand()<.5)add('scroll_'+pick(Object.keys(SKILLS).filter(k=>k!=='rally')));
+  if(rand()<.5)add('qiPill');
+  return out;
+}
+
+/* ---- flow ---- */
+async function beginBattle(){
+  const def=genBattle(run.n);CH.length=0;CH.push(def);
+  setupChapter(0,run.roster);rewinds=3;saveGame();await chapterIntro();
+}
+async function newRun(){
+  const seed=(Date.now()^Math.floor(Math.random()*1e9))>>>0;seedRng(seed);
+  run={seed,n:1,uid:1,roster:[]};
+  const opts=Array.from({length:5},()=>genUnit(1));
+  const squad=await draftPick(opts,3);if(!squad)return false;
+  run.roster=squad;titleEl.hidden=true;await beginBattle();return true;
+}
+async function titleScreen(){
+  for(;;){
+    const sv=loadGame(),items=[];
+    if(sv&&sv.state&&sv.run)items.push(['cont','Continue']);
+    items.push(['new','New March'],['opts','Options']);
+    const m=await titleMenu(items);
+    if(m==='opts'){await optionsMenu(true);continue}
+    if(m==='cont'){titleEl.hidden=true;restore(sv);banner('Player Phase','p');return}
+    if(await newRun())return;
+  }
+}
+async function winScreen(){
+  await sleep(600);
+  const survivors=state.units.filter(u=>u.team==='p'),fallen=chStart.units.filter(s=>s.team==='p'&&!survivors.some(u=>u.id===s.id));
+  run.roster=survivors.map(u=>{const r=clone(u);r.hp=r.maxhp;r.acted=false;r.stone=0;return r});
+  const last=run.n>=RUN_LEN,rw=battleRewards();
+  const ro=survivors.map(u=>`<div><img src="${portrait(u)}" alt="">${u.name}<span class="hint">Lv ${u.lv}</span></div>`).join('')+fallen.map(u=>`<div class="dead"><img src="${portrait(u)}" alt="">${u.name}<span class="hint">Fallen</span></div>`).join('');
+  await modal(`<div class="eyebrow">Battle ${run.n} of ${RUN_LEN} won · Turn ${state.turn}</div><h2>${CH[0].title}</h2><p>${last?'Act 1 is complete. Act 2 comes next in development.':'Survivors heal fully before the next battle.'}</p><div class="roster">${ro}</div>${rw.length?`<p>Found: ${rw.join(', ')}</p>`:''}<div class="mbtns"><button class="go" type="button" data-m="next">${last?'End the march':'March on'}</button></div>`);
+  if(last){try{localStorage.removeItem(SAVE)}catch(_){}run=null;titleScreen();return}
+  await recruitNode();
+  run.n++;await beginBattle();
+}
+async function loseScreen(){
+  await sleep(500);const can=settings.rewind&&rewinds>0&&history.length;
+  const m=await modal(`<div class="eyebrow">Defeat</div><h2>The march ends</h2><p>Your squad fell in battle ${run.n} of ${RUN_LEN}. Seed ${run.seed}.</p>${can?`<p>You have ${rewinds} rewind${rewinds>1?'s':''} left.</p>`:''}<div class="mbtns">${can?'<button class="go" type="button" data-m="rewind">Rewind</button>':''}<button type="button" data-m="title">Back to title</button></div>`);
+  if(m==='rewind'){rewind();return}
+  try{localStorage.removeItem(SAVE)}catch(_){}run=null;titleScreen();
+}
+function rewind(){if(!settings.rewind||rewinds<=0||!history.length||busy)return;if(ui!=='idle')cancelMove();state=history.pop();rewinds--;over=null;phase='player';clearSel();ui='idle';render();saveGame()}
+function restore(d){
+  run=d.run;CH.length=0;CH.push(d.def);seedRng(d.rng);
+  [...d.state.units,...(d.chStart?d.chStart.units:[]),...run.roster].forEach(u=>ensureCls(u.cls));
+  state=d.state;history=d.history||[];rewinds=d.rewinds??3;chStart=d.chStart||clone(state);enterMap();
+}
 /* ---- story scenes ---- */
 const storyEl=document.createElement('div');storyEl.className='story';storyEl.hidden=true;document.body.appendChild(storyEl);
 function speaker(id){
@@ -1845,48 +1845,12 @@ function titleMenu(items){
   return new Promise(res=>{
     titleEl.innerHTML=`<div class="tsky"></div><div class="tembers">${Array.from({length:18},(_,i)=>`<i style="left:${(i*53)%100}%;animation-delay:${(i*0.7)%6}s;animation-duration:${5+(i%5)}s"></i>`).join('')}</div>
     <div class="tlogo"><svg viewBox="0 0 64 64" class="tmark" aria-hidden="true"><path d="M32 6c-2 0-3 2-3 4-9 2-13 10-13 20v10l-5 7h42l-5-7V30c0-10-4-18-13-20 0-2-1-4-3-4z" fill="#c9d4e6"/><path d="M22 30c0-6 3-11 8-13" stroke="#fff" stroke-width="2" fill="none" opacity=".5"/><circle cx="32" cy="53" r="5" fill="#7fc8ff"/></svg>
-    <h1 class="tname">Nightbound</h1><p class="tsub">Answer the Bell</p></div>
+    <h1 class="tname">Ember March</h1><p class="tsub">Every march ends somewhere</p></div>
     <nav class="tmenu">${items.map(([k,l])=>`<button type="button" data-t="${k}">${l}</button>`).join('')}</nav>`;
     titleEl.hidden=false;
     titleEl.onclick=e=>{const b=e.target.closest('[data-t]');if(!b)return;sfx('select');res(b.dataset.t)};
   });
 }
-async function titleScreen(){
-  for(;;){
-    const sv=loadGame(),hasSlots=readSlots().some(Boolean),items=[];
-    if(sv&&sv.state)items.push(['cont','Continue']);
-    items.push(['new','New Game']);
-    if(hasSlots)items.push(['load','Start from Save']);
-    items.push(['opts','Options']);
-    const m=await titleMenu(items);
-    if(m==='opts'){await optionsMenu(true);continue}
-    if(m==='load'){const r=await loadScreen();if(r==='back')continue;titleEl.hidden=true;return}
-    if(m==='cont'){titleEl.hidden=true;state=sv.state;rewinds=sv.rewinds??3;chStart=sv.chStart||clone(state);history=[];enterMap();banner('Player Phase','p');return}
-    const sex=await modal(`<div class="eyebrow">New game</div><h2>Choose your hero</h2><p>Both fight with blades and share the Command skill. Cal starts with a sword, Nyra with twin daggers. Their stats are the same.</p><div class="lordpick">${Object.entries(LORDS).map(([k,l])=>`<button type="button" data-m="${k}"><span class="lpair"><img src="${portraitArt(l.look,'Heir','p')}" alt=""><img class="lspr" src="${sprite(Object.assign(mkLord(k),{id:'pick'+k}),'idle',l.weapon)}" alt=""></span><b>${l.name}</b></button>`).join('')}</div><div class="mbtns"><button type="button" data-m="back">Back</button></div>`);
-    if(sex==='back')continue;
-    const party=newParty(sex);titleEl.hidden=true;settings.lord=sex;saveOpts();await introScene(party);await beginChapter(0,party);return;
-  }
-}
-async function winScreen(){
-  await sleep(600);const c=state.ch,survivors=state.units.filter(u=>u.team==='p'),fallen=HEROES.filter(h=>!survivors.some(s=>s.id===h.id)&&chStart.units.some(s=>s.id===h.id&&s.team==='p'));
-  const ro=survivors.map(u=>`<div><img src="${portrait(u)}" alt="">${u.name}<span class="hint">Lv ${u.lv}</span></div>`).join('')+fallen.map(h=>`<div class="dead"><img src="${picOf(h)}" alt="">${h.name}<span class="hint">Fallen</span></div>`).join('');
-  const last=c===CH.length-1;
-  await modal(`<div class="eyebrow">Chapter ${c+1} cleared · Turn ${state.turn}</div><h2>${CH[c].title} won</h2><p>${last?'The first Nightmare is over. That\'s everything built so far, with more Nightmares to come.':'Survivors heal fully and carry their levels and items into the next chapter.'}</p><div class="roster">${ro}</div><div class="mbtns"><button class="go" type="button" data-m="next">${last?'New campaign':'Continue to Chapter '+(c+2)}</button></div>`);
-  await playStory(STORY[c]&&STORY[c].post);
-  if(last){try{localStorage.removeItem(SAVE)}catch(_){}titleScreen();return}
-  let roster=survivors.map(u=>{const r=clone(u);r.hp=r.maxhp;r.acted=false;return r});
-  const cc=CH[c];if(cc.leave)roster=roster.filter(r=>!cc.leave.includes(r.id));
-  if(cc.reward){const r=roster.find(x=>x.id===cc.reward.unit);if(r&&r.items.length<5)r.items.push({k:cc.reward.item,u:IT[cc.reward.item].uses})}
-  await saveScreen(c+1,roster);
-  await beginChapter(c+1,roster);
-}
-async function loseScreen(){
-  await sleep(500);const can=settings.rewind&&rewinds>0&&history.length;
-  const m=await modal(`<div class="eyebrow">Defeat</div><h2>${state.units.some(u=>u.lord)&&protectU()===undefined&&CH[state.ch].protect?(heroDef(CH[state.ch].protect)?.name||'Your ally'):lordName()} has fallen</h2><p>${can?`You have ${rewinds} rewind${rewinds>1?'s':''} left this chapter.`:'No rewinds left.'}</p><div class="mbtns">${can?'<button class="go" type="button" data-m="rewind">Rewind</button>':''}<button type="button" data-m="restart">Restart chapter</button></div>`);
-  if(m==='rewind')rewind();else{state=clone(chStart);history=[];rewinds=3;enterMap();await chapterIntro()}
-}
-function rewind(){if(!settings.rewind||rewinds<=0||!history.length||busy)return;if(ui!=='idle')cancelMove();state=history.pop();rewinds--;over=null;phase='player';clearSel();ui='idle';render();saveGame()}
-
 $('#btnEnd').addEventListener('click',async()=>{if(busy||over||phase!=='player'||!modalEl.hidden)return;if(ui!=='idle')cancelMove();
   const left=state.units.filter(u=>u.team==='p'&&!u.acted).length;
   const m=await modal(`<h2>End your turn?</h2><p>${left?`${left} unit${left>1?'s have':' has'} not moved yet.`:'Every unit has moved.'}</p><div class="mbtns"><button type="button" data-m="no">No</button><button class="go" type="button" data-m="end">Yes, end turn</button></div>`);
@@ -1895,25 +1859,18 @@ $('#btnRewind').addEventListener('click',rewind);
 $('#btnDanger').addEventListener('click',()=>{danger=!danger;render();if(danger)tip('danger','Danger zone','Red tiles are where enemies can strike next turn. Tap a tile, or move a unit onto one, to see which enemies they are.')});
 $('#btnOpts').addEventListener('click',()=>{if(!busy)optionsMenu()});
 $('#btnDev').addEventListener('click',()=>{if(!busy&&!over&&modalEl.hidden)devMenu()});
-/* Dev mode: skip fights while testing the story. */
+/* Dev mode: win the current battle straight away. */
 async function devMenu(){
-  const m=await modal(`<div class="eyebrow">Dev mode</div><h2>Skip ahead</h2><p>Win this chapter to see its ending and carry on, or jump straight to any chapter with the current party.</p><div class="mbtns"><button class="go" type="button" data-m="win">Win this chapter</button></div><div class="devch">${CH.map((c,i)=>`<button type="button" class="it" data-m="ch${i}">${i+1}. ${c.title}${i===state.ch?' <span class="u">current</span>':''}</button>`).join('')}</div><div class="mbtns"><button type="button" data-m="close">Close</button></div>`);
-  if(m==='win'){cancelMove();
-    if(CH[state.ch].goal==='duel'&&state.stage!==2){const sl=state.units.find(u=>u.id==='silas');if(sl){sl.team='p';sl.turncoat=false}state.units.push(...(state.reserve||[]));state.reserve=[]}
-    over='win';render();winScreen();return}
-  if(m.startsWith('ch')){const i=+m.slice(2);cancelMove();
-    const roster=[...state.units.filter(u=>u.team==='p'),...(state.reserve||[])].map(u=>{const r=clone(u);r.hp=r.maxhp;r.acted=false;r.stone=0;return r});
-    const want=['lord','maren','dax','oti','silas','kestrel'];if(i>=2)want.push('iona');if(i>=3)want.push('vasha');
-    for(const id of want)if(!roster.some(r=>r.id===id))roster.push(id==='lord'?mkLord(settings.lord||'m'):mkHero(heroDef(id)));
-    const out=roster.filter(r=>r.id!=='gruu'&&(i>=3||r.id!=='vasha')&&(i>=2||r.id!=='iona'));
-    over=null;await beginChapter(i,out)}
+  const m=await modal(`<div class="eyebrow">Dev mode</div><h2>Skip ahead</h2><p>Win this battle straight away. Seed ${run?run.seed:'-'}.</p><div class="mbtns"><button type="button" data-m="close">Close</button><button class="go" type="button" data-m="win">Win this battle</button></div>`);
+  if(m==='win'){cancelMove();over='win';render();winScreen()}
 }
-
 function start(data){
   try{const o=JSON.parse(localStorage.getItem(OPTS));if(o)settings=Object.assign(settings,o)}catch(_){}
-  if(data&&data.state){state=data.state;history=data.history||[];rewinds=data.rewinds??3;chStart=data.chStart||clone(state);enterMap();return}
-  setupChapter(0,newParty(settings.lord||'m'));titleScreen();
+  if(data&&data.state&&data.run){restore(data);return}
+  /* A throwaway battle sits behind the title screen. */
+  seedRng(7);run={seed:7,n:1,uid:1,roster:[]};run.roster=[genUnit(1),genUnit(1),genUnit(1)];CH.length=0;CH.push(genBattle(1));setupChapter(0,run.roster);run=null;
+  titleScreen();
 }
-window.claude?.hot?.snapshot?.(()=>({state,history,rewinds,chStart}));
+window.claude?.hot?.snapshot?.(()=>({state,history,rewinds,chStart,run,def:CH[0],rng:rngS}));
 window.claude?.hot?.ready?window.claude.hot.ready(start):start(window.claude?.hot?.data??{});
 </script>
