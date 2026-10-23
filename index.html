@@ -384,6 +384,24 @@ button.it.sel{border-color:var(--gold)}
 .roster img{width:48px;height:48px;object-fit:cover;background:var(--panel2);border-radius:6px}
 .roster .dead img{filter:grayscale(1) brightness(.5)}
 .draft{display:flex;flex-direction:column;gap:6px}
+.nmap{position:fixed;inset:0;z-index:55;display:flex;flex-direction:column;background:radial-gradient(ellipse at 50% 0%,#2a2433,#121018 70%);padding:12px 12px max(12px,env(safe-area-inset-bottom,0px));padding-top:max(12px,env(safe-area-inset-top,0px));gap:8px}
+.nm-head h2{font-family:var(--display);margin:0;font-size:24px;letter-spacing:.05em}
+.nm-head .eyebrow{font-size:12px;text-transform:uppercase;letter-spacing:.12em;color:var(--gold)}
+.nm-scroll{flex:1;overflow:auto;min-height:0;border:1px solid var(--line);border-radius:10px;background:rgba(0,0,0,.18)}
+.nm-board{position:relative;max-width:420px;margin:0 auto}
+.nm-board svg{position:absolute;inset:0}
+.nd{position:absolute;width:44px;height:44px;margin:-22px 0 0 -22px;border-radius:50%;padding:0;display:grid;place-items:center;background:var(--panel2);border:2px solid var(--line);opacity:.55}
+.nd img{width:28px;height:28px;image-rendering:pixelated}
+.nd.n-boss{width:60px;height:60px;margin:-30px 0 0 -30px;border-color:#a8483a}.nd.n-boss img{width:44px;height:44px}
+.nd.n-elite{border-color:#a8483a}.nd.n-rest{border-color:#c98a3a}.nd.n-recruit{border-color:var(--blue)}
+.nd.vis{opacity:.85;background:#2a2620}
+.nd.cur{opacity:1;box-shadow:0 0 0 3px var(--gold)}
+.nd.ok{opacity:1;animation:pulse 1.2s infinite}
+.nd.pick{border-color:var(--gold);background:color-mix(in srgb,var(--gold) 25%,var(--panel2))}
+.nm-info{min-height:2.6em;font-size:14px;color:var(--muted);line-height:1.35}.nm-info b{color:var(--fg)}
+.nm-squad{display:flex;gap:6px;overflow-x:auto}
+.nm-squad div{display:flex;flex-direction:column;align-items:center;font-size:11px;min-width:52px}
+.nm-squad img{width:40px;height:40px;image-rendering:pixelated}.nm-squad small{color:var(--muted)}
 .dcard{position:relative;display:flex;gap:10px;align-items:center;text-align:left;padding:6px 8px}
 .dcard.on{border-color:var(--gold);background:color-mix(in srgb,var(--gold) 14%,var(--panel2))}
 .dimg{flex:none;width:56px;height:56px;background:var(--panel2);border-radius:6px;display:grid;place-items:center}
@@ -697,6 +715,21 @@ function hairFront(p,L,hair,hair2,TC,cloth){
   if(g==='circlet'){p.rect(10,6,12,1,GOLD);p.set(15,5,GOLD);p.set(16,5,GOLD);p.set(15,6,'#9fd8ff');p.set(16,6,'#9fd8ff')}
   if(L.beard){p.rect(16,14,3,3,hair);p.rect(17,12,3,1,hair)}
 }
+function horseUnder(p,L,TC,cloth,strike){
+  const q=Px(32,32),hc=L.horse||'#7a5230',hc2=shade(hc,.72),mane=shade(hc,.45),hi=shade(hc,1.18),rear=strike?-2:0;
+  q.poly([[5,19],[1,22],[1,27],[3,27],[7,22]],mane);
+  q.rect(7,25,2,6,hc2);q.rect(20,25+rear,2,6,hc2);
+  q.ell(15,22,10,4.4,hc);q.line(8,19,20,18,hi);
+  q.rect(10,25,2,6,hc);q.rect(23,25+rear,2,6,hc);
+  [[6,30],[9,30],[19,30+rear],[22,30+rear]].forEach(([x,y])=>q.rect(x,y,3,1,INK));
+  q.poly([[20,21],[23,12+rear],[27,11+rear],[27,21]],hc);q.poly([[25,11+rear],[31,14+rear],[31,17+rear],[27,17+rear]],hc);
+  q.line(22,12+rear,20,20,mane,2);q.poly([[24,11+rear],[25,7+rear],[27,11+rear]],hc2);q.set(27,13+rear,INK);q.set(30,15+rear,INK);
+  q.line(26,16+rear,22,19,BROWN2);
+  q.poly([[10,18],[20,18],[19,25],[11,25]],TC.a);q.rect(10,18,10,1,GOLD);q.rect(11,24,8,1,shade(TC.a,.7));
+  for(let y=0;y<32;y++)for(let x=0;x<32;x++){const c=p.g[y*32+x];if(!c||(y>=24&&x>=8&&x<=23))continue;if(y-3>=0)q.set(x,y-3,c)}
+  q.rect(14,19,3,5,shade(cloth,.7));q.rect(14,24,4,2,INK);
+  q.outline(OUT);return q.url();
+}
 const sprCache={};
 function fig(L,cls,team,pose,wk){
   const sk=L.skin||SKIN,sk2=L.skin?shade(L.skin,.85):SKIN2;
@@ -746,6 +779,7 @@ function fig(L,cls,team,pose,wk){
   const fsl=body==='vest'?sk:cloth;
   if(strike){drawWeapon(p,w,25,16,true);if(body==='robe')p.poly([[18,15],[25,13],[26,17],[18,19]],fsl);else p.rect(18,15,7,3,fsl);p.rect(25,15,2,3,sk)}
   else{drawWeapon(p,w,20,21,false);if(body==='robe')p.poly([[18,16],[21,16],[23,23],[18,23]],fsl);else p.rect(18,16,3,6,fsl);p.rect(20,21,2,2,sk)}
+  if(CLS[cls].mnt)return horseUnder(p,L,TC,cloth,strike);
   p.outline(OUT);return p.url();
 }
 function iconArt(k){
@@ -873,7 +907,7 @@ document.addEventListener('pointerdown',()=>{if(settings.sound)audio()},{capture
 /* ================= RULES ================= */
 const isWpn=k=>WTYPES.includes(IT[k].t);
 /* Fliers cross sky and rough ground at cost 1, but not walls, masts or crags. */
-function mcost(u,x,y){const t=ter(x,y);if(CLS[u.cls].fly)return['wall','mast','cliff'].includes(t.k)?99:1;return t.c}
+function mcost(u,x,y){const t=ter(x,y);if(CLS[u.cls].fly)return['wall','mast','cliff'].includes(t.k)?99:1;if(CLS[u.cls].mnt&&(t.k==='forest'||t.k==='hill'))return t.c+1;return t.c}
 /* Teams: p = player, e = enemy, g = green 'other' units that fight the enemy and can be recruited. */
 const hostile=(a,b)=>(a.team==='e')!==(b.team==='e');
 /* Skills: u.skill is the personal skill (free). u.skills holds extras: {id,src:'lv10'} (free) or {id,src:'scroll'} (costs capacity). */
@@ -1029,7 +1063,7 @@ function render(){
     el.querySelector('.hpb i').style.width=(u.hp/u.maxhp*100)+'%';
   }
   for(const id in uEls)if(!live.has(id)){uEls[id].remove();delete uEls[id]}
-  $('#turn').textContent=`Battle ${run?run.n:1} · Turn ${state.turn}`+(phase==='enemy'?' · Enemy':'');
+  $('#turn').textContent=`Floor ${run?run.n:1} · Turn ${state.turn}`+(phase==='enemy'?' · Enemy':'');
   $('#obj').innerHTML=`<div><b>Goal</b>${goalShort()}</div><div><b>Lose</b>${loseText()}</div>`;
   const idle=phase==='player'&&!busy&&!over;
   $('#btnRewind').hidden=!settings.rewind;$('#btnRewind').textContent='Rewind '+rewinds;$('#btnRewind').disabled=!(idle&&rewinds>0&&history.length);
@@ -1557,7 +1591,7 @@ async function runAI(team){
 
 /* ================= CHAPTERS / SAVE ================= */
 const SAVE='embermarch2.save.v1',OPTS='embermarch2.opts';
-function saveGame(){if(!run)return;try{localStorage.setItem(SAVE,JSON.stringify({state,rewinds,chStart,run,def:CH[0],rng:rngS}))}catch(_){}}
+function saveGame(){if(!run)return;const map=run.phase==='map';try{localStorage.setItem(SAVE,JSON.stringify({state:map?null:state,rewinds,chStart:map?null:chStart,run,def:map?null:CH[0],rng:rngS}))}catch(_){}}
 function loadGame(){try{return JSON.parse(localStorage.getItem(SAVE))}catch(_){return null}}
 function setMap(){MAP=CH[state.ch].map;MW=MAP[0].length;MH=MAP.length}
 function setupChapter(ci,roster){
@@ -1578,7 +1612,7 @@ function npc(id,x,y,o){return Object.assign(mkHero(heroDef(id)),{team:'g',x,y,ho
 function enterMap(){setMap();over=null;phase='player';busy=false;ui='idle';clearSel();buildBoard();render();requestAnimationFrame(()=>initCam())}
 async function chapterIntro(){
   const c=CH[state.ch];
-  await modal(`<div class="eyebrow">Act 1 · Battle ${run.n} of ${RUN_LEN}</div><h2>${c.title}</h2><p>${c.intro.replaceAll('{lord}',lordName())}</p><div class="lvl" style="grid-template-columns:1fr"><div><span style="color:var(--gold)">Goal</span><span>${goalText().replace(/<[^>]+>/g,' ').trim()}</span></div><div><span style="color:var(--red)">Lose</span><span>${loseText()}</span></div></div><div class="mbtns"><button class="go" type="button" data-m="go">Begin</button></div>`);
+  await modal(`<div class="eyebrow">Act 1 · Floor ${run.n} of ${RUN_LEN} · ${NODE_N[run.kind]||'Battle'}</div><h2>${c.title}</h2><p>${c.intro.replaceAll('{lord}',lordName())}</p><div class="lvl" style="grid-template-columns:1fr"><div><span style="color:var(--gold)">Goal</span><span>${goalText().replace(/<[^>]+>/g,' ').trim()}</span></div><div><span style="color:var(--red)">Lose</span><span>${loseText()}</span></div></div><div class="mbtns"><button class="go" type="button" data-m="go">Begin</button></div>`);
   banner('Player Phase','p');saveGame();
   if(state.ch===0)tip('basics','Moving your units','Tap a blue unit to see where it can go: blue tiles are moves, red tiles are what it can hit. Tap a tile to move there, or tap a red enemy to attack it straight away. Dead woods give +20 Avoid and +1 Def, so fight from the trees when you can.');
   if(state.ch===1)tip('defend','Hold the camp','You win by surviving: the goal counts the turns. Plug the gaps in the palisade, and expect new enemies every turn.');
@@ -1587,8 +1621,8 @@ async function chapterIntro(){
   if(state.ch===1)tip('items','Villages, chests and recruits','Move any unit onto a village or chest and choose Visit or Open to collect an item. Under Items you can equip weapons, use Salves and learn skills from scrolls. Some enemies can be recruited: put your lord next to them and choose Talk.');
 }
 /* ================= RUN (roguelike) ================= */
-/* Act 1: RUN_LEN battles, the last one a boss. Units, classes, looks and enemies are generated from the run's seed. */
-const RUN_LEN=5,TEAM_CAP=6;
+/* Act 1: a branching node map of ROWS floors, then the boss on floor RUN_LEN. Units, classes, looks, maps and enemies all come from the run's seed. */
+const RUN_LEN=6,TEAM_CAP=6;
 let run=null;
 
 /* ---- classes from parts: role + movement + weapon ---- */
@@ -1605,7 +1639,9 @@ const ROLES={
   support:{n:'Mender',n2:'Lightbearer',w:['spirit'],body:'robe',skills:['renewal','brace','kindle'],
     b:[17,0,5,4,6,5,1,6],gr:[[50,65],[0,10],[40,55],[30,45],[40,55],[40,60],[10,20],[40,60]],bonus:[4,0,2,1,2,0,1,3]}
 };
-const MOVES={foot:{mov:5},armour:{pre:'Iron',mov:4,st:[2,1,0,0,-2,0,3,0]}};
+const MOVES={foot:{mov:5},armour:{pre:'Iron',mov:4,st:[2,1,0,0,-2,0,3,0]},
+  /* Mounted: 7 move, slowed by forest and hills. Names replace the role word, e.g. Lance Cavalier. */
+  mounted:{mov:7,mnt:true,st:[1,0,0,0,1,0,0,-1],names:{bruiser:['Rider','Warlord'],tank:['Cavalier','Paladin'],skirm:['Outrider','Ranger'],caster:['Battlemage','Archmage'],support:['Troubadour','Valkyrie']}}};
 const WN={blade:'Blade',heavy:'Axe',pole:'Lance',bow:'Bow'};
 const SEC={blade:'pole',heavy:'blade',pole:'heavy',bow:'blade',art:'spirit'};
 const KIT={blade:['ironJian','twinBlades','needle','ironDao'],heavy:['ironAxe','ironJi'],pole:['ironSpear','javelin'],bow:['shortBow','crossbow'],art:['flameT','natureT','tideT','lightT','darkT']};
@@ -1614,7 +1650,7 @@ function ensureCls(k){
   if(CLS[k]||!k.startsWith('G.'))return k;
   const[,r,m,w,t]=k.split('.'),R=ROLES[r],M=MOVES[m],t2=t==='2';
   const ws=w==='spirit'?['spirit','art']:[w];if(t2&&SEC[w]&&!ws.includes(SEC[w]))ws.push(SEC[w]);
-  CLS[k]={n:(M.pre?M.pre+' ':'')+(WN[w]?WN[w]+' ':'')+(t2?R.n2:R.n),w:ws,body:m==='armour'?'armor':R.body,mov:M.mov+(t2?1:0),crit:R.crit||0};
+  CLS[k]={n:(M.pre?M.pre+' ':'')+(WN[w]?WN[w]+' ':'')+(M.names?M.names[r][t2?1:0]:t2?R.n2:R.n),w:ws,body:m==='armour'?'armor':R.body,mov:M.mov+(t2?1:0),crit:R.crit||0,mnt:!!M.mnt};
   if(t2)Object.assign(CLS[k],{tier:2,bonus:R.bonus});else{CLS[k].promo=`G.${r}.${m}.${w}.2`;ensureCls(CLS[k].promo)}
   return k;
 }
@@ -1639,6 +1675,7 @@ function genLook(role,mv,w){
   const L={style:st,gear:gear==='none'?undefined:gear,hair:pick(HAIRC),skin:pick(SKINS),cloth:pick(CLOTH),sash:pick(SASH),eye:pick(EYES)};
   if(rand()<.2&&st!=='long')L.beard=true;
   if(rand()<.25)L.cape=true;
+  if(mv==='mounted')L.horse=pick(['#7a5230','#4a3426','#c9c3b8','#2a2226','#a8743a','#8a8f9a','#e8e2d0']);
   return L;
 }
 
@@ -1649,7 +1686,7 @@ function startItems(role,w){
 }
 function genUnit(lv,role){
   role=role||pick(Object.keys(ROLES));const R=ROLES[role],w=pick(R.w);
-  const mv=(role==='caster'||role==='support'||w==='bow')?'foot':(rand()<(role==='tank'?.6:.15)?'armour':'foot');
+  const heavy=!(role==='caster'||role==='support'||w==='bow')&&rand()<(role==='tank'?.5:.12),mv=heavy?'armour':rand()<.22?'mounted':'foot';
   const cls=ensureCls(`G.${role}.${mv}.${w}.1`),M=MOVES[mv];
   const s=R.b.map(v=>Math.max(0,v+ri(-1,1)));if(M.st)M.st.forEach((d,i)=>s[i]=Math.max(0,s[i]+d));
   const g=R.gr.map(([a,b])=>ri(a,b));
@@ -1697,17 +1734,18 @@ function spawnTiles(m){
   for(let i=out.length-1;i>0;i--){const j=Math.floor(rand()*(i+1));[out[i],out[j]]=[out[j],out[i]]}
   return out;
 }
-function genBattle(n){
-  const bossFight=n>=RUN_LEN,mk=bossFight?'maze':pick(['ford','stockade','vaults','meadow','thicket']),m=MAPS[mk];
+function genBattle(n,kind){
+  const bossFight=kind==='boss',elite=kind==='elite',mk=bossFight?'maze':pick(['ford','stockade','vaults','meadow','thicket']),m=MAPS[mk];
   const pool=[['Wolf',3],['Harpy',2],['LamiaM',n>=2?2:0],['MinotaurM',n>=3?1:0]],tot=pool.reduce((a,p)=>a+p[1],0);
   const roll=()=>{let r=rand()*tot;for(const[c,w]of pool){if((r-=w)<0)return c}return'Wolf'};
-  const count=Math.min(7,2+n),list=[];
+  const count=Math.min(7,(bossFight?1:2)+n),list=[];
   while(list.length<count){const c=roll();list.push(c);if(c==='Wolf'&&list.length<count&&rand()<.6)list.push('Wolf')}
   const bossName=pick(BOSSN)+' '+pick(BOSST);
-  const def={title:bossFight?'The Labyrinth Heart':`The ${pick(ADJ)} ${m.n}`,goal:bossFight?'boss':'rout',map:m.map,start:m.start,gifts:{},
-    intro:bossFight?`${bossName} waits at the centre of the maze. Bring it down to end the act.`:`${count} monsters prowl the ${m.n.toLowerCase()}. Rout them.`};
+  const def={title:bossFight?'The Labyrinth Heart':`The ${pick(ADJ)} ${m.n}`+(elite?' (Elite)':''),goal:bossFight?'boss':'rout',map:m.map,start:m.start,gifts:{},
+    intro:bossFight?`${bossName} waits at the centre of the maze. Bring it down to end the act.`:elite?`A pack led by something old and strong holds the ${m.n.toLowerCase()}. Rout them all.`:`${count} monsters prowl the ${m.n.toLowerCase()}. Rout them.`};
   def.foes=()=>{const tiles=spawnTiles(m),out=[];
-    list.forEach((c,i)=>{const lv=Math.max(1,n+(rand()<.3?1:0)-(c==='Wolf'?1:0)),u=mkMon(c,lv),t=tiles[i%tiles.length];u.x=t.x;u.y=t.y;
+    list.forEach((c,i)=>{const lv=Math.max(1,n+(rand()<.3?1:0)-(c==='Wolf'?1:0)+(elite?1:0)),u=mkMon(c,lv),t=tiles[i%tiles.length];u.x=t.x;u.y=t.y;
+      if(elite&&i===0){u.name='Elder '+u.name;u.boss=true;ST.forEach(k=>{if(k==='hp'){u.maxhp+=6;u.hp+=6}else u[k]+=2});u.skill=pick(['fury','brace','swift','shieldwall'])}
       if(rand()<.2){const k=pick(['qiPill','qiPill','steelJian','steelAxe','steelSpear','steelBow']);u.items.push({k,u:IT[k].uses,d:true})}out.push(u)});
     if(bossFight){let bx=6,by=4;m.map.forEach((r,y)=>{const x=r.indexOf('T');if(x>=0){bx=x;by=y}});
       out.push(boss({id:'boss',name:bossName,cls:'MinotaurM',lv:6,x:bx,y:by,s:[34,12,0,6,4,2,9,2],items:['steelAxe'],skill:'fury',look:monLook('MinotaurM')}))}
@@ -1749,32 +1787,90 @@ async function recruitNode(){
 function giveItem(k){const r=run.roster.filter(u=>u.items.length<5).sort((a,b)=>a.items.length-b.items.length)[0];if(!r)return null;r.items.push({k,u:IT[k].uses});return r}
 function battleRewards(){
   const out=[],add=k=>{const r=giveItem(k);if(r)out.push(`<b>${IT[k].n}</b> → ${r.name}`)};
-  if(run.n===2||run.n===4)add('crest');
+  if(run.kind==='elite')add('crest');
   if(rand()<.5)add('scroll_'+pick(Object.keys(SKILLS).filter(k=>k!=='rally')));
   if(rand()<.5)add('qiPill');
   return out;
 }
 
+
+/* ---- node map: ROWS rows of 3 lanes, then the boss. Each node links to the same lane and sometimes a neighbour. ---- */
+const ROWS=5;
+const NODE_N={battle:'Battle',elite:'Elite',recruit:'Recruit',rest:'Rest',boss:'Boss'};
+const NODE_D={battle:'Fight monsters for EXP and loot.',elite:'A tougher fight with a strong leader. Drops an Ascension Fragment.',recruit:'Pick 1 of 3 new units.',rest:'Train one unit: it gains a level.',boss:'The act boss.'};
+function pickW(opts){const tot=opts.reduce((a,o)=>a+o[1],0);let r=rand()*tot;for(const[k,w]of opts){if((r-=w)<0)return k}return opts[0][0]}
+function genMap(){
+  const rows=[];
+  for(let r=0;r<ROWS;r++)rows.push([0,1,2].map(()=>({t:r===0?'battle':pickW([['battle',45],['elite',r>=2?15:0],['recruit',20],['rest',r>=2?20:0]]),next:[]})));
+  if(!rows.some(row=>row.some(n=>n.t==='elite')))rows[ri(2,4)][ri(0,2)].t='elite';
+  if(!rows[1].concat(rows[2]).some(n=>n.t==='recruit'))rows[ri(1,2)][ri(0,2)].t='recruit';
+  if(!rows[3].concat(rows[4]).some(n=>n.t==='rest'))rows[ri(3,4)][ri(0,2)].t='rest';
+  rows.push([{t:'boss',next:[]}]);
+  for(let r=0;r<ROWS-1;r++)rows[r].forEach((n,i)=>{n.next=[i];if(rand()<.55){const j=i+(rand()<.5?-1:1);if(j>=0&&j<3)n.next.push(j)}});
+  rows[ROWS-1].forEach(n=>n.next=[0]);
+  rows.forEach(row=>row.forEach((n,i)=>n.x=row.length===1?50:18+i*32+ri(-5,5)));
+  return{rows};
+}
+function campArt(){const p=Px(16,16);p.line(2,14,13,10,BROWN,2);p.line(2,10,13,14,BROWN2,2);p.poly([[8,1],[12,10],[8,12],[4,10]],'#ff8a3c');p.poly([[8,5],[10,10],[8,11],[6,10]],'#ffe14a');p.outline(OUT);return p.url()}
+const NODE_IC={};
+function nodeIcon(t){return NODE_IC[t]||(NODE_IC[t]=t==='battle'?icon('ironJian'):t==='elite'?icon('moonDao'):t==='rest'?campArt():
+  t==='recruit'?fig({style:'short',hair:'#6b4226',cloth:'#3a7cc0'},'Heir','p','idle',null):fig(monLook('MinotaurM'),'MinotaurM','e','idle','ironAxe'))}
+function reachable(){const M=run.map.rows;if(!run.pos)return M[0].map((_,i)=>({r:0,i}));const n=M[run.pos.r][run.pos.i];return run.pos.r+1<M.length?n.next.map(i=>({r:run.pos.r+1,i})):[]}
+const mapEl=document.createElement('div');mapEl.className='nmap';mapEl.hidden=true;document.body.appendChild(mapEl);
+function mapScreen(){
+  const M=run.map.rows,RH=74,H=M.length*RH+20,ok=reachable(),isOk=(r,i)=>ok.some(o=>o.r===r&&o.i===i);
+  const Y=r=>H-30-r*RH,vis=new Set((run.path||[]).map(p=>p.r+','+p.i));
+  let lines='';M.forEach((row,r)=>row.forEach((n,i)=>n.next.forEach(j=>{const m=M[r+1]&&M[r+1][j];if(!m)return;const walked=vis.has(r+','+i)&&vis.has((r+1)+','+j);
+    lines+=`<line x1="${n.x}" y1="${Y(r)}" x2="${m.x}" y2="${Y(r+1)}" stroke="${walked?'#d8b15a':'#5a5466'}" stroke-width="${walked?2.5:1.5}" stroke-dasharray="${walked?'':'3 4'}" vector-effect="non-scaling-stroke"/>`})));
+  const nodes=M.map((row,r)=>row.map((n,i)=>{const cur=run.pos&&run.pos.r===r&&run.pos.i===i,c=['nd','n-'+n.t,isOk(r,i)?'ok':'',vis.has(r+','+i)?'vis':'',cur?'cur':''].join(' ');
+    return`<button type="button" class="${c}" style="left:${n.x}%;top:${Y(r)}px" data-n="${r},${i}" ${isOk(r,i)?'':'tabindex="-1"'} aria-label="${NODE_N[n.t]}"><img src="${nodeIcon(n.t)}" alt=""></button>`}).join('')).join('');
+  mapEl.innerHTML=`<div class="nm-head"><div class="eyebrow">Act 1 · Seed ${run.seed}</div><h2>Choose your path</h2></div>
+    <div class="nm-scroll"><div class="nm-board" style="height:${H}px"><svg viewBox="0 0 100 ${H}" preserveAspectRatio="none" width="100%" height="${H}">${lines}</svg>${nodes}</div></div>
+    <div class="nm-info">Tap a glowing node.</div>
+    <div class="nm-squad">${run.roster.map(u=>`<div><img src="${uSpr(u)}" alt=""><span>${u.name}</span><small>Lv ${u.lv}</small></div>`).join('')}</div>`;
+  mapEl.hidden=false;
+  const sc=mapEl.querySelector('.nm-scroll'),focus=ok[0]?Y(ok[0].r):H;sc.scrollTop=Math.max(0,focus-sc.clientHeight/2);
+  return new Promise(res=>{let sel=null;mapEl.onclick=e=>{
+    const b=e.target.closest('.nd.ok');if(b){const[r,i]=b.dataset.n.split(',').map(Number),t=M[r][i].t;
+      if(sel===b.dataset.n){mapEl.hidden=true;mapEl.onclick=null;sfx('select');return res({r,i})}
+      sel=b.dataset.n;mapEl.querySelectorAll('.nd.pick').forEach(x=>x.classList.remove('pick'));b.classList.add('pick');sfx('tick');
+      mapEl.querySelector('.nm-info').innerHTML=`<b>${NODE_N[t]}.</b> ${NODE_D[t]} Tap again to go.`;return}
+    const any=e.target.closest('.nd');if(any){const[r,i]=any.dataset.n.split(',').map(Number),t=M[r][i].t;mapEl.querySelector('.nm-info').innerHTML=`<b>${NODE_N[t]}.</b> ${NODE_D[t]}`}
+  }});
+}
+async function restNode(){
+  const m=await modal(`<div class="eyebrow">Rest</div><h2>A quiet camp</h2><p>Train one unit. They gain a level.</p><div class="draft">${run.roster.map((u,i)=>`<button type="button" class="dcard" data-m="t${i}">${unitCard(u)}</button>`).join('')}</div><div class="mbtns"><button type="button" data-m="skip">Move on</button></div>`);
+  if(m==='skip')return;const u=run.roster[+m.slice(1)],g=gainExp(u,100);if(g&&g.gains)await levelUp(u,g);
+}
+async function mapStep(){
+  run.phase='map';saveGame();
+  const pos=await mapScreen(),N=run.map.rows[pos.r][pos.i];
+  run.pos=pos;(run.path=run.path||[]).push(pos);run.n=pos.r+1;run.kind=N.t;
+  if(N.t==='recruit'){await recruitNode();return mapStep()}
+  if(N.t==='rest'){await restNode();return mapStep()}
+  run.phase='battle';await beginBattle();
+}
+
 /* ---- flow ---- */
 async function beginBattle(){
-  const def=genBattle(run.n);CH.length=0;CH.push(def);
+  const def=genBattle(run.n,run.kind);CH.length=0;CH.push(def);
   setupChapter(0,run.roster);rewinds=3;saveGame();await chapterIntro();
 }
 async function newRun(){
   const seed=(Date.now()^Math.floor(Math.random()*1e9))>>>0;seedRng(seed);
-  run={seed,n:1,uid:1,roster:[]};
+  run={seed,n:0,uid:1,roster:[],pos:null,path:[]};
   const opts=Array.from({length:5},()=>genUnit(1));
   const squad=await draftPick(opts,3);if(!squad)return false;
-  run.roster=squad;titleEl.hidden=true;await beginBattle();return true;
+  run.roster=squad;run.map=genMap();titleEl.hidden=true;await mapStep();return true;
 }
 async function titleScreen(){
   for(;;){
     const sv=loadGame(),items=[];
-    if(sv&&sv.state&&sv.run)items.push(['cont','Continue']);
+    if(sv&&sv.run)items.push(['cont','Continue']);
     items.push(['new','New March'],['opts','Options']);
     const m=await titleMenu(items);
     if(m==='opts'){await optionsMenu(true);continue}
-    if(m==='cont'){titleEl.hidden=true;restore(sv);banner('Player Phase','p');return}
+    if(m==='cont'){titleEl.hidden=true;restore(sv);if(run.phase==='map')mapStep();else banner('Player Phase','p');return}
     if(await newRun())return;
   }
 }
@@ -1784,20 +1880,20 @@ async function winScreen(){
   run.roster=survivors.map(u=>{const r=clone(u);r.hp=r.maxhp;r.acted=false;r.stone=0;return r});
   const last=run.n>=RUN_LEN,rw=battleRewards();
   const ro=survivors.map(u=>`<div><img src="${portrait(u)}" alt="">${u.name}<span class="hint">Lv ${u.lv}</span></div>`).join('')+fallen.map(u=>`<div class="dead"><img src="${portrait(u)}" alt="">${u.name}<span class="hint">Fallen</span></div>`).join('');
-  await modal(`<div class="eyebrow">Battle ${run.n} of ${RUN_LEN} won · Turn ${state.turn}</div><h2>${CH[0].title}</h2><p>${last?'Act 1 is complete. Act 2 comes next in development.':'Survivors heal fully before the next battle.'}</p><div class="roster">${ro}</div>${rw.length?`<p>Found: ${rw.join(', ')}</p>`:''}<div class="mbtns"><button class="go" type="button" data-m="next">${last?'End the march':'March on'}</button></div>`);
+  await modal(`<div class="eyebrow">Floor ${run.n} of ${RUN_LEN} won · Turn ${state.turn}</div><h2>${CH[0].title}</h2><p>${last?'Act 1 is complete. Act 2 comes next in development.':'Survivors heal fully before the next battle.'}</p><div class="roster">${ro}</div>${rw.length?`<p>Found: ${rw.join(', ')}</p>`:''}<div class="mbtns"><button class="go" type="button" data-m="next">${last?'End the march':'March on'}</button></div>`);
   if(last){try{localStorage.removeItem(SAVE)}catch(_){}run=null;titleScreen();return}
-  await recruitNode();
-  run.n++;await beginBattle();
+  await mapStep();
 }
 async function loseScreen(){
   await sleep(500);const can=settings.rewind&&rewinds>0&&history.length;
-  const m=await modal(`<div class="eyebrow">Defeat</div><h2>The march ends</h2><p>Your squad fell in battle ${run.n} of ${RUN_LEN}. Seed ${run.seed}.</p>${can?`<p>You have ${rewinds} rewind${rewinds>1?'s':''} left.</p>`:''}<div class="mbtns">${can?'<button class="go" type="button" data-m="rewind">Rewind</button>':''}<button type="button" data-m="title">Back to title</button></div>`);
+  const m=await modal(`<div class="eyebrow">Defeat</div><h2>The march ends</h2><p>Your squad fell on floor ${run.n} of ${RUN_LEN}. Seed ${run.seed}.</p>${can?`<p>You have ${rewinds} rewind${rewinds>1?'s':''} left.</p>`:''}<div class="mbtns">${can?'<button class="go" type="button" data-m="rewind">Rewind</button>':''}<button type="button" data-m="title">Back to title</button></div>`);
   if(m==='rewind'){rewind();return}
   try{localStorage.removeItem(SAVE)}catch(_){}run=null;titleScreen();
 }
 function rewind(){if(!settings.rewind||rewinds<=0||!history.length||busy)return;if(ui!=='idle')cancelMove();state=history.pop();rewinds--;over=null;phase='player';clearSel();ui='idle';render();saveGame()}
 function restore(d){
-  run=d.run;CH.length=0;CH.push(d.def);seedRng(d.rng);
+  run=d.run;seedRng(d.rng);run.roster.forEach(u=>ensureCls(u.cls));if(run.phase==='map')return;
+  CH.length=0;CH.push(d.def);
   [...d.state.units,...(d.chStart?d.chStart.units:[]),...run.roster].forEach(u=>ensureCls(u.cls));
   state=d.state;history=d.history||[];rewinds=d.rewinds??3;chStart=d.chStart||clone(state);enterMap();
 }
@@ -1866,7 +1962,7 @@ async function devMenu(){
 }
 function start(data){
   try{const o=JSON.parse(localStorage.getItem(OPTS));if(o)settings=Object.assign(settings,o)}catch(_){}
-  if(data&&data.state&&data.run){restore(data);return}
+  if(data&&data.run&&data.state){restore(data);return}
   /* A throwaway battle sits behind the title screen. */
   seedRng(7);run={seed:7,n:1,uid:1,roster:[]};run.roster=[genUnit(1),genUnit(1),genUnit(1)];CH.length=0;CH.push(genBattle(1));setupChapter(0,run.roster);run=null;
   titleScreen();
