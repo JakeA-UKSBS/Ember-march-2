@@ -7,7 +7,7 @@ Open `index.html` in a browser.
 
 ## A run
 - Pick 3 of 5 generated units. Fallen units are gone for the rest of the run; you only lose when the whole squad falls.
-- Act 1 is a branching node map (`genMap()`): 9 floors of 3 lanes, then the boss on floor 10.
+- Each act is a branching node map (`genMap()`): 9 floors of 3 lanes, then the boss on floor 10.
 - Every path holds exactly `MIX`: 4 combats (some floor 5+ battles become elites), 2 recruits, 1 rest, 1 event, 1 treasure. Lanes are shuffles of the same mix, and a crossing between lanes is only kept if every path through the map still matches, so no route skips the treasure room. Change `MIX` to change the length and mix.
 - Nodes: Battle; Elite (Elder leader, drops an Ascension Fragment); Recruit (pick 1 of 3; team caps at 6, `TEAM_CAP`); Rest (train one unit +1 level); Treasure (pick 1 of 3 items); Event (`EVENTS`); Boss.
 - Events: the Wandering Smith (reforge a weapon +1, up to +3), Abandoned Armoury (a steel weapon, or 2 Salves), Shrine of Trial (3 max HP for a random skill), Training Ground (everyone +50 EXP).
@@ -23,8 +23,12 @@ Open `index.html` in a browser.
 - Monsters: `Wolf`, `Harpy`, `LamiaM`, `MinotaurM` in `CLS`/`FOE`, looks from `monLook()`. Wolves use the `beast` body in `fig()`.
 - `MAPS`: battle maps. `genBattle()` picks a map and enemies by battle number.
 - Mounted units are drawn by `horseUnder()`: a random-coloured horse with team barding, rider laid on top.
-- Promotion: an Ascension Fragment at Lv 5+ (`PROMO_LV`). Fragments drop from elite nodes.
+- Promotion: an Ascension Fragment at Lv 5+ (`PROMO_LV`) offers up to 3 paths (`promoOptions()`): the usual upgrade, a new movement type, and a new role that keeps the weapon. Fragments drop from elites and treasure.
+- Flying units (`MOVES.flying`, needs the Sky Riders unlock): pegasus riders for skirmishers, casters and menders, wyverns for brutes and guards. Drawn by `horseUnder()` with wings.
+- Relics (`RELICS`): team passives for the run. Elites offer 1 of 2, the Act 1 boss 1 of 3, treasure rooms sometimes hold one. Combat effects go through `relicCalc()`, move through `relicMov()`. Shown on the map; tap one to read it.
+- Act 2 (`run.act`): a second 9-floor map after the Act 1 boss, with gremlins, gloomwings, mindsnails and storm harpies added, and the Lamia Queen in the Serpent Palace as the final boss.
+- Unlocks (`UNLOCKS`, Camp on the title screen): Essence is earned per win (4 battle, 8 elite, 20 boss, +20 for finishing); a failed run keeps half. Unlocks: Second Look (reroll), Old Relics, Wider Draft, Sky Riders, Heirloom (starting relic), Veterans (Lv 2 draft). Saved in `embermarch2.profile`.
 - Magic: fire > nature > water > fire, light > dark. Dark sigils drain 25% of damage dealt.
 
 ## Not built yet
-Relics, unlocks, Act 2, flying player units, promotion choices.
+Archetypes (named unlockable classes), more events, Act 3.
