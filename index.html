@@ -659,7 +659,7 @@ const STORY={};
 /* ================= STATE ================= */
 let state,history=[],rewinds=3,chStart=null,MAP=[],MW=8,MH=11;
 let ui='idle',sel=null,pre=null,origin=null,moveSet=null,fringe=null,targets=[],tmode='atk',pending=null,pendW=0,phase='player',busy=false,over=null,inspect=null,danger=false,details=false,itemSel=null,terInfo='';
-let settings={anim:true,sound:true,tips:true,seen:[],lord:'m',rewind:false,dev:false};
+let settings={anim:true,sound:true,tips:false,seen:[],lord:'m',rewind:false,dev:false};
 let threatTile=null;
 let foeSeq=0;
 const $=s=>document.querySelector(s);
@@ -2153,7 +2153,7 @@ function mapScreen(){
   mapEl.innerHTML=`<div class="nm-head"><div class="eyebrow">Act ${run.act||1} of ${ACTS} · Seed ${run.seed}${run.asc?` · Ascension ${run.asc}`:''} · <span class="gold">${gold()} gold</span></div><h2>${actBiome().n}</h2></div>
     <div class="nm-scroll"><div class="nm-board" style="height:${H}px"><svg viewBox="0 0 100 ${H}" preserveAspectRatio="none" width="100%" height="${H}">${lines}</svg>${nodes}</div></div>
     ${(run.relics||[]).length||(run.meals||[]).length?`<div class="nm-relics">${(run.relics||[]).map(k=>`<button type="button" class="rl" data-rel="${k}" aria-label="${RELICS[k].n}"><img src="${relicArt(k)}" alt=""></button>`).join('')}${(run.meals||[]).map(x=>`<button type="button" class="rl ml" data-meal="${x.id}" aria-label="${MEALS[x.id].n}"><img src="${mealArt(x.id)}" alt=""><i>${x.n}</i></button>`).join('')}</div>`:''}
-    <div class="nm-info">Tap a glowing node.</div>
+    <div class="nm-info"></div>
     <div class="nm-squad">${run.roster.map(u=>`<div><img src="${uSpr(u)}" alt=""><span>${u.name}</span><small>Lv ${u.lv}</small></div>`).join('')}</div>`;
   tip('map','The road ahead','Tap a glowing room to see what it is, then tap it again to go there. Every route has the same rooms in a different order: 3 battles, an elite (the red skull), a recruit, a tavern, a rest, an event and a treasure room, then the boss.');
   mapEl.hidden=false;mapEl.style.background=`radial-gradient(ellipse at 50% 0%,${actBiome().bg},#121018 72%)`;
@@ -2164,9 +2164,9 @@ function mapScreen(){
     const b=e.target.closest('.nd.ok');if(b){const[r,i]=b.dataset.n.split(',').map(Number),t=M[r][i].t;
       if(sel===b.dataset.n){mapEl.onclick=null;sfx('select');return res({r,i})}
       sel=b.dataset.n;mapEl.querySelectorAll('.nd.pick').forEach(x=>x.classList.remove('pick'));b.classList.add('pick');sfx('tick');
-      mapEl.querySelector('.nm-info').innerHTML=`<b>${NODE_N[t]}.</b> ${NODE_D[t]} Tap again to go.`;return}
+      mapEl.querySelector('.nm-info').innerHTML=`<b>${NODE_N[t]}</b> · tap again to go`;return}
     const st=e.target.closest('[data-start]');if(st){mapEl.querySelector('.nm-info').innerHTML=(run.act||1)===1?'<b>The Crossroads.</b> Where the march began.':`<b>The road in.</b> Where you entered the ${actBiome().n}.`;return}
-    const any=e.target.closest('.nd');if(any){const[r,i]=any.dataset.n.split(',').map(Number),t=M[r][i].t;mapEl.querySelector('.nm-info').innerHTML=`<b>${NODE_N[t]}.</b> ${NODE_D[t]}`}
+    const any=e.target.closest('.nd');if(any){const[r,i]=any.dataset.n.split(',').map(Number),t=M[r][i].t;mapEl.querySelector('.nm-info').innerHTML=`<b>${NODE_N[t]}</b>`}
   }});
 }
 async function restNode(){
@@ -2697,7 +2697,7 @@ async function devMenu(){
 }
 function start(data){
   loadProf();
-  try{const o=JSON.parse(localStorage.getItem(OPTS));if(o)settings=Object.assign(settings,o)}catch(_){}
+  try{const o=JSON.parse(localStorage.getItem(OPTS));if(o){settings=Object.assign(settings,o);if(!settings.tipsV2){settings.tips=false;settings.tipsV2=1;saveOpts()}}}catch(_){}
   if(data&&data.run&&data.state){restore(data);return}
   /* A throwaway battle sits behind the title screen. */
   seedRng(7);run={seed:7,n:1,uid:1,roster:[]};run.roster=[genUnit(1),genUnit(1),genUnit(1)];CH.length=0;CH.push(genBattle(1));setupChapter(0,run.roster);run=null;

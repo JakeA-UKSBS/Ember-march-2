@@ -56,7 +56,7 @@ Each run picks 2 of these as its acts (`BIOMES`, `ACTS`). Each has 2-3 battle ma
   - Run History (title screen) is in development; runs are already recorded in `prof.hist`.
 - Gear (`t:'gear'`): Leather Armour, Chainmail, Warding Cloak, Traveller's Boots, Iron Gauntlets. Bonuses apply while carried (one of each counts; `gearOf()`). Found in treasure rooms and monster drops.
 - Trade: a unit next to an ally gets a Trade option. Salves, scrolls and gear can be passed across; weapons can't. Trading doesn't use the unit's action.
-- Tutorials: tips appear the first time you reach each screen; every tip has a Turn off tutorials button (back on in Options).
+- Tutorials: off by default. Turn on Tutorial tips in Options to get a tip the first time you reach each screen; every tip has a Turn off tutorials button.
 - Magic: fire > nature > water > fire, light > dark. Dark sigils drain 25% of damage dealt.
 
 ## Not built yet
