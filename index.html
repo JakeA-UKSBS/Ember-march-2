@@ -1463,6 +1463,7 @@ function promote(u,to){
   if(from.startsWith('G.')&&to.startsWith('G.')){const s1=MOVES[from.split('.')[2]].st||[],s2=MOVES[to.split('.')[2]].st||[];b.forEach((v,i)=>b[i]=v+Math.max(0,(s2[i]||0)-(s1[i]||0)))}
   const old={lv:u.lv,cap:capOf(u)};ST.forEach(s=>old[s]=s==='hp'?u.maxhp:u[s]);
   const gift=CLS[to].gift&&u.items.length<5?CLS[to].gift:null;if(gift)u.items.push({k:gift,u:IT[gift].uses});
+  if(u._nl){u.look=u._nl;delete u._nl}
   u.cls=to;u.lv=1;u.exp=0;u.cap=capOf(u)+PROMO_CAP;u.mov=CLS[to].mov;
   ST.forEach((s,i)=>{if(s==='hp'){u.maxhp+=b[i];u.hp+=b[i]}else u[s]+=b[i]});
   return{from,to,old,b,gift};
@@ -1502,8 +1503,10 @@ async function levelUp(u,g){
     row.classList.add('up');row.querySelector('.v').textContent=g.old[s]+1;row.querySelector('em').textContent='+1';sfx('ding');await sleep(fast?150:340)}
   if(g.gains.learned){const sk=SKILLS[g.gains.learned],row=document.createElement('div');row.className='lvsk';row.innerHTML=`<span>New skill</span><b>${sk.n}</b><small>${sk.d}</small>`;modalEl.querySelector('.lvl').after(row);sfx('fanfare')}
   const b=modalEl.querySelector('[data-m]');if(b)b.disabled=false;
-  return done;
+  await done;await evolveCheck(u);
 }
+/* units evolve the moment they reach PROMO_LV: pick a path, then the ascension plays */
+async function evolveCheck(u){if(u.team!=='p'||CLS[u.cls].tier===2||!CLS[u.cls].promo||u.lv<PROMO_LV)return;const was=busy;busy=true;const L0=u.look,to=await promoPick(u,true);u._nl=u.look;u.look=L0;await ascend(u,to);busy=was;if(state&&state.units.includes(u))render()}
 function tip(id,title,text){
   if(!settings.tips||settings.seen.includes(id)||!modalEl.hidden)return;
   settings.seen.push(id);saveOpts();
@@ -2026,7 +2029,7 @@ function genBattle(n,kind){
   const fl=run&&run.n||1,diff=(act-1)*10+fl,lvBase=1+Math.floor(diff*.6);
   const pool=(elite?B.elitePool:B.pool).filter(p=>act>=2||fl>=(p[2]||1)),tot=pool.reduce((a,p)=>a+p[1],0);
   const roll=()=>{let r=rand()*tot;for(const[c,w]of pool){if((r-=w)<0)return c}return pool[0][0]};
-  const count=bossFight?(act>=2?5:4):Math.min(7,(ship?1:2)+Math.ceil(fl/3)+(act-1)*2+(elite?1:0)),list=elite?[B.elitePool[0][0]]:[];
+  const count=bossFight?(act>=2?5:4):Math.min(7,(ship?1:2)+Math.floor(fl/3)+(act-1)*2+(elite?1:0)),list=elite?[B.elitePool[0][0]]:[];
   while(list.length<count){const c=roll();list.push(c);if(c==='Wolf'&&list.length<count&&rand()<.6)list.push('Wolf')}
   const bossName=B.boss.name||pick(BOSSN)+' '+pick(BOSST),turns=ship&&!bossFight?(elite?6:5):0;
   const goal=bossFight?'boss':ship?'defend':'rout';
@@ -2075,7 +2078,6 @@ async function recruitNode(){
 function giveItem(k){const r=run.roster.filter(u=>u.items.length<5).sort((a,b)=>a.items.length-b.items.length)[0];if(!r)return null;r.items.push({k,u:IT[k].uses});return r}
 function battleRewards(){
   const out=[],add=k=>{const r=giveItem(k);if(r)out.push(`<b>${IT[k].n}</b> → ${r.name}`)};
-  if(run.kind==='elite')add('crest');
   if(rand()<.5)add('scroll_'+pick(Object.keys(SKILLS).filter(k=>k!=='rally')));
   if(rand()<.5)add('qiPill');
   return out;
@@ -2089,7 +2091,7 @@ function battleRewards(){
 const MIX={battle:3,elite:1,recruit:1,tavern:1,rest:1,event:1,treasure:1};
 const ROWS=Object.values(MIX).reduce((a,b)=>a+b,0);
 const NODE_N={tavern:'Tavern',battle:'Battle',elite:'Elite',recruit:'Recruit',rest:'Rest',event:'Event',treasure:'Treasure',boss:'Boss'};
-const NODE_D={tavern:'Spend gold on drinks, food and sellswords, and hear the local rumours.',battle:'Fight monsters for EXP and loot.',elite:'Elite fight: a stronger pack led by an Elder monster. Drops an Ascension Fragment and a relic.',recruit:'Pick 1 of 3 new units.',rest:'Train one unit: it gains a level.',
+const NODE_D={tavern:'Spend gold on drinks, food and sellswords, and hear the local rumours.',battle:'Fight monsters for EXP and loot.',elite:'Elite fight: a stronger pack led by an Elder monster. Drops a relic.',recruit:'Pick 1 of 3 new units.',rest:'Train one unit: it gains a level.',
   event:'Something unexpected: a smith, a shrine, an old armoury…',treasure:'A treasure room. Pick 1 of 3 items.',boss:'The act boss.'};
 function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(rand()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
 function laneOk(a){
@@ -2195,7 +2197,7 @@ const weaponOf=u=>u.items.find(it=>(isWpn(it.k)||IT[it.k].t==='spirit')&&canUse(
 
 /* ---- treasure: pick 1 of 3 items, then who carries it ---- */
 async function treasureNode(){
-  const pool=['steelJian','steelAxe','steelSpear','steelBow','moonDao','greatsword','javelin','throwAxe','crossbow','thunderT','greaterMend','crest','qiPill',...Object.keys(SKILLS).filter(k=>k!=='rally').map(k=>'scroll_'+k)];
+  const pool=['steelJian','steelAxe','steelSpear','steelBow','moonDao','greatsword','javelin','throwAxe','crossbow','thunderT','greaterMend','qiPill',...Object.keys(SKILLS).filter(k=>k!=='rally').map(k=>'scroll_'+k)];
   const mk=()=>{const o=shuffle(pool.slice()).slice(0,3),rp=relicPool(['c','u']);if(rp.length&&rand()<.4)o[2]='relic:'+pick(rp);return o};
   let opts=mk();
   for(;;){
@@ -2302,6 +2304,8 @@ async function relicPick(n,rs,title,text){
 /* combat hooks, called from calc(): only your units benefit */
 function relicCalc(x,xw,y){
   const o={pow:0,df:0,acc:0,avo:0,crit:0};if(!run)return o;
+  /* early ease: in Act 1, enemies deal 3 less damage on floors 1-3, 2 less on 4-6, 1 less on 7-9 */
+  if(x.team==='e'&&(run.act||1)===1&&(run.n||1)<10)o.pow-=3-Math.floor(((run.n||1)-1)/3);
   if(x.team==='p'){if(M('boar'))o.pow+=2;if(M('bread'))o.acc+=15}if(y.team==='p'&&M('pie'))o.df+=2;
   if(!run.relics)return o;
   if(x.team==='p'){
@@ -2334,19 +2338,19 @@ function promoOptions(u){
 /* movement changes on promotion need a mount (or a helm) on the sprite */
 function lookFor(L,to){const l=clone(L),m=to.split('.')[2];
   if((m==='mounted'||m==='flying')&&!l.horse)Object.assign(l,mountLook(m,to.split('.')[1]));
-  if(m!=='flying')delete l.mount;if(m==='flying'&&!l.mount)Object.assign(l,mountLook(m,to.split('.')[1]));
+  if(m!=='flying'&&l.mount){delete l.mount;if(m==='mounted')Object.assign(l,mountLook(m,to.split('.')[1]));else delete l.horse}if(m==='flying'&&!l.mount)Object.assign(l,mountLook(m,to.split('.')[1]));
   if(m==='armour'&&!l.gear)l.gear='helm';return l}
 function mountLook(m,role){
   if(m==='flying'){const wy=role==='bruiser'||role==='tank';return{mount:wy?'wyvern':'pegasus',horse:wy?pick(['#4f7a4a','#5a4a7a','#7a4a3a','#3a5a6a']):pick(['#f3f0e8','#e0e6f0','#f0e0e8'])}}
   return{horse:pick(['#7a5230','#4a3426','#c9c3b8','#2a2226','#a8743a','#8a8f9a','#e8e2d0'])};
 }
-async function promoPick(u){
+async function promoPick(u,forced){
   const opts=promoOptions(u);if(opts.length<2)return opts[0];
   const views=opts.map(k=>({k,look:lookFor(u.look,k)}));
-  const m=await modal(`<div class="eyebrow">Ascension</div><h2>Choose ${u.name}’s path</h2><p>Every path keeps their weapon, adds +${PROMO_CAP} skill capacity and resets them to Lv 1.</p>
+  const m=await modal(`<div class="eyebrow">Lv ${PROMO_LV} · Ascension</div><h2>Choose ${u.name}’s path</h2><p>Every path keeps their weapon, adds +${PROMO_CAP} skill capacity and resets them to Lv 1.</p>
     <div class="draft">${views.map((v,i)=>{const C=CLS[v.k],tmp=Object.assign(clone(u),{cls:v.k,look:v.look,id:u.id+'~p'+i});
       return`<button type="button" class="dcard" data-m="c${i}"><div class="dimg"><img src="${sprite(tmp,'idle',mapWk(u))}" alt=""></div><div class="dtxt"><b>${C.n}</b><span class="dcls">Move ${C.mov} · ${C.w.map(t=>TN[t]).join(', ')}${C.fly?' · Flies':''}</span><span class="dst">${ST.map((s,j)=>C.bonus[j]?`${SL[s]} +${C.bonus[j]}`:'').filter(Boolean).join(' ')}</span></div></button>`}).join('')}</div>
-    <div class="mbtns"><button type="button" data-m="no">Not yet</button></div>`);
+    ${forced?'':'<div class="mbtns"><button type="button" data-m="no">Not yet</button></div>'}`);
   if(m==='no')return null;const v=views[+m.slice(1)];u.look=v.look;return v.k;
 }
 
@@ -2492,7 +2496,7 @@ async function beginBattle(){
 async function newRun(){
   const seed=(Date.now()^Math.floor(Math.random()*1e9))>>>0;seedRng(seed);
   run={seed,n:0,uid:1,roster:[],pos:null,path:[],act:1,relics:[],ess:0,rr:{},gold:30,meals:[]};run.biomes=shuffle(Object.keys(BIOMES)).slice(0,ACTS);
-  const opts=Array.from({length:unl('draft6')?6:5},()=>genUnit(unl('veterans')?2:1));
+  const opts=Array.from({length:unl('draft6')?6:5},(_,i)=>genUnit(unl('veterans')?2:1,i===0?'support':undefined));shuffle(opts);
   titleEl.hidden=true;const squad=await musterScene(opts,3);if(!squad)return false;
   run.roster=squad;
   if(unl('startRelic'))await relicPick(2,['c','u'],'An heirloom','Choose a relic to carry from the start.');

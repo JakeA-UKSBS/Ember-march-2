@@ -22,10 +22,12 @@ Each run picks 2 of these as its acts (`BIOMES`, `ACTS`). Each has 2-3 battle ma
 
 
 ## A run
+- Every opening draft includes at least one Mender (healer).
+- Early ease: in Act 1, enemies deal 3 less damage on floors 1-3, 2 less on 4-6 and 1 less on 7-9; the first two floors have 2 enemies.
 - A run opens at the Crossroads (`musterScene()`): your candidates stand around a campfire, with the run's two regions on the signpost. Tap travellers to see their card and choose 3, then march. Each act's map starts from a flag node at the bottom. Fallen units are gone for the rest of the run; you only lose when the whole squad falls.
 - Each act is a branching node map (`genMap()`): 9 floors of 3 lanes, then the boss on floor 10.
 - Every path holds exactly `MIX`: 3 battles, 1 elite (never before floor 4; shown as a red horned skull on the map), 1 recruit, 1 tavern, 1 rest, 1 event, 1 treasure. Lanes are shuffles of the same mix, and a crossing between lanes is only kept if every path through the map still matches, so no route skips the treasure room. Change `MIX` to change the length and mix.
-- Nodes: Battle; Elite (Elder leader, drops an Ascension Fragment); Recruit (pick 1 of 3; team caps at 6, `TEAM_CAP`); Rest (train one unit +1 level); Treasure (pick 1 of 3 items); Event (`EVENTS`); Tavern; Boss.
+- Nodes: Battle; Elite (Elder leader, drops a relic); Recruit (pick 1 of 3; team caps at 6, `TEAM_CAP`); Rest (train one unit +1 level); Treasure (pick 1 of 3 items); Event (`EVENTS`); Tavern; Boss.
 - Gold: 30 to start, then 25 per battle, 45 per elite, 80 per boss (`GOLDWIN`). Spent at taverns.
 - Tavern (`tavernNode()`): talk to Marla the innkeeper and pick as many options as you can afford before leaving. Drinks (`DRINKS`): a round of ale (+30 EXP for everyone) or a spirit for one unit (+1 to a stat for good). Food (`MEALS`): squad-wide buffs for 2-3 fights (+2 damage, +15 Hit, +2 Def/Res, +1 Move, poison immunity), counted down after each won fight and shown on the map. Sellswords: 3 units for hire at 40 + 15 per level. Rumours: a hint about the region's boss and rule. Music slot: `music/tavern.mp3`.
 - Events: the Wandering Smith (reforge a weapon +1, up to +3), Abandoned Armoury (a steel weapon, or 2 Salves), Shrine of Trial (3 max HP for a random skill), Training Ground (everyone +50 EXP).
@@ -43,7 +45,7 @@ Each run picks 2 of these as its acts (`BIOMES`, `ACTS`). Each has 2-3 battle ma
 - Region monster sprites are bodies in `fig()` (`shroom`, `ghost`, `mud`, `gator`, `golem`, `flame`, `dragon`, `storm`, `eye`, riderless `mount`), with looks from `MONLOOK`. Skeletons are humanoids with `look.skel`.
 - Reinforcements (`def.waves`) are plain data, `{turn:[{c,lv,x,y,ifBoss}]}`, so they survive a save.
 - Mounted units are drawn by `horseUnder()`: a random-coloured horse with team barding, rider laid on top.
-- Promotion: an Ascension Fragment at Lv 5+ (`PROMO_LV`) offers up to 3 paths (`promoOptions()`): the usual upgrade, a new movement type, and a new role that keeps the weapon. Fragments drop from elites and treasure.
+- Promotion: a unit evolves as soon as it reaches Lv 5 (`PROMO_LV`, `evolveCheck()` after any level-up), choosing from up to 3 paths (`promoOptions()`): the usual upgrade, a new movement type, and a new role that keeps the weapon.
 - Flying units (`MOVES.flying`, needs the Sky Riders unlock): pegasus riders for skirmishers, casters and menders, wyverns for brutes and guards. Drawn by `horseUnder()` with wings.
 - Relics (`RELICS`): team passives for the run. Elites offer 1 of 2, the Act 1 boss 1 of 3, treasure rooms sometimes hold one. Combat effects go through `relicCalc()`, move through `relicMov()`. Shown on the map; tap one to read it.
 - Act 2 (`run.act`): a second 9-floor map after the Act 1 boss, with gremlins, gloomwings, mindsnails and storm harpies added, and the Lamia Queen in the Serpent Palace as the final boss.
