@@ -416,9 +416,18 @@ button.it.sel{border-color:var(--gold)}
 .mu span{font-size:12px;font-weight:700;color:#f3e6d0;background:rgba(20,12,8,.75);border-radius:4px;padding:1px 6px;white-space:nowrap}
 .mu:hover{transform:translateX(-50%) translateY(-3px)}
 .mu.on{transform:translateX(-50%) translateY(-6px)}.mu.on img{filter:drop-shadow(0 0 3px #f0c850) drop-shadow(0 0 6px #f0c850)}.mu.on span{background:#f0c850;color:#1a1408}
-.ms-sign{position:absolute;font-size:clamp(6px,1.3vw,11px);font-weight:700;color:#2a1a10;white-space:nowrap;transform:translateX(-50%)}
-.ms-sign.a{left:84%;top:54%}.ms-sign.b{left:86%;top:62.5%}
-.ms-card:empty{display:none}.ms-card .dcard{cursor:default}
+.ms-post{position:absolute;left:4%;top:10%;display:flex;flex-direction:column;gap:5px;padding-left:10px;border-left:4px solid #5a3a22}
+.ms-sign{display:flex;flex-direction:column;background:#a8743a;border:2px solid #5a3a22;color:#1e120a;font-weight:700;font-size:clamp(11px,2vw,15px);line-height:1.15;padding:3px 18px 3px 8px;clip-path:polygon(0 0,calc(100% - 12px) 0,100% 50%,calc(100% - 12px) 100%,0 100%);box-shadow:inset 0 -2px 0 #7a5230}
+.ms-sign small{font-size:.7em;font-weight:700;color:#4a2e1a;text-transform:uppercase;letter-spacing:.08em}
+.ms-head{display:flex;align-items:center;gap:8px;flex-wrap:wrap}.ms-count{flex:1;min-width:0;color:#f3e6d0;font-size:15px}
+.ms-info{background:#2e1e16;border-color:#7a5230;color:#f0c850}
+.stathelp{display:grid;grid-template-columns:1fr 1fr;gap:4px 14px;background:#2e1e16;border:1px solid #5a3a22;border-radius:6px;padding:8px 10px;font-size:13px}
+.stathelp div{display:flex;gap:6px}.stathelp b{color:#f0c850;min-width:38px}.stathelp span{color:#ead9c0}
+@media (max-width:520px){.stathelp{grid-template-columns:1fr}}
+.ms-cards{display:grid;gap:6px}@media (min-width:960px){.ms-cards{grid-template-columns:repeat(3,1fr)}}
+.ms-cards .dcard{display:grid;grid-template-columns:56px minmax(0,1fr);column-gap:10px;row-gap:6px;align-items:center;cursor:default;padding-right:34px}.ms-cards .dtxt{min-width:0}.ms-x{position:absolute;right:6px;top:6px;padding:2px 7px}
+.ms-sk{grid-column:1/-1;margin:0;font-size:12px;color:var(--muted);line-height:1.35}.ms-sk b{color:var(--gold)}
+.ms-cards .dtick{display:none}
 .tav{position:fixed;inset:0;z-index:57;display:flex;flex-direction:column;align-items:center;gap:10px;overflow:auto;background:#140d0a;padding-block:max(12px,env(safe-area-inset-top,0px)) max(12px,env(safe-area-inset-bottom,0px));padding-left:max(12px,env(safe-area-inset-left,0px));padding-right:max(12px,env(safe-area-inset-right,0px))}
 .tv-scene{box-sizing:border-box;position:relative;width:min(100%,760px);aspect-ratio:16/9;flex:none;border:2px solid #5a3a22;border-radius:8px;overflow:hidden}
 .tv-scene img{position:absolute;image-rendering:pixelated}
@@ -2438,31 +2447,35 @@ function musterArt(){const c='MUS';if(sprCache[c])return sprCache[c];const W=160
   p.poly([[0,58],[24,46],[50,56],[80,44],[110,56],[136,46],[160,54],[160,64],[0,64]],'#2a2436');
   p.rect(0,60,W,30,'#3e4a2e');for(let i=0;i<60;i++)p.set((i*37)%W,62+(i*13)%28,i%2?'#4e5a3a':'#34402a');
   p.poly([[66,90],[94,90],[86,60],[74,60]],'#6a5a3e');p.poly([[74,60],[86,60],[83,52],[77,52]],'#5a4a34');
-  p.rect(137,46,2,24,'#5a3a22');p.poly([[124,48],[148,48],[152,51],[148,54],[124,54]],'#8a6040');p.poly([[150,56],[128,56],[124,59],[128,62],[150,62]],'#8a6040');
   p.line(80,74,72,80,'#5a3a22',2);p.line(72,74,88,80,'#4a2e1a',2);p.poly([[80,62],[85,72],[80,75],[75,72]],'#ff8a3c');p.poly([[80,66],[82,72],[80,74],[78,72]],'#ffe14a');
   p.rect(18,66,10,7,'#7a5a3a');p.rect(16,64,14,3,'#5a3a22');p.rect(112,70,12,6,'#5a4a3a');
   return sprCache[c]=p.url()}
 function flagArt(){const c='FLAG';if(sprCache[c])return sprCache[c];const p=Px(16,16);p.rect(4,1,1,14,'#8a6040');p.poly([[5,2],[14,4],[5,8]],'#d8483a');p.line(5,3,11,4,'#f0c850');p.rect(2,14,5,1,'#5a3a22');p.outline(OUT);return sprCache[c]=p.url()}
 const musEl=document.createElement('div');musEl.className='tav mus';musEl.hidden=true;document.body.appendChild(musEl);
+const STAT_HELP=[['HP','Health. A unit falls at 0.'],['Str','Damage with blades, axes, lances and bows.'],['Mag','Damage with sigils (magic).'],['Skl','Hit chance and critical hits. Some skills trigger off Skl.'],['Spd','Avoid. 4 more Spd than your foe means you strike twice.'],['Lck','A little Hit and Avoid, and protects against crits.'],['Def','Cuts physical damage taken.'],['Res','Cuts magic damage taken.'],['Move','Tiles the unit can move each turn.']];
+const statHelpHTML=()=>`<div class="stathelp" hidden>${STAT_HELP.map(([k,d])=>`<div><b>${k}</b><span>${d}</span></div>`).join('')}</div>`;
 async function musterScene(opts,need){
-  const chosen=new Set(),B1=BIOMES[run.biomes[0]],B2=BIOMES[run.biomes[1]],n=opts.length;let focus=null;
+  const chosen=[],B1=BIOMES[run.biomes[0]],B2=BIOMES[run.biomes[1]],n=opts.length;
   const pos=i=>10+i*80/(n-1);
   musEl.innerHTML=`<div class="tv-scene"><img class="tv-bg" src="${musterArt()}" alt="">
-      <span class="ms-sign a">${B1.n}</span><span class="ms-sign b">${B2.n}</span>
+      <div class="ms-post" aria-label="Signpost"><span class="ms-sign"><small>Act 1</small>${B1.n}</span><span class="ms-sign"><small>Act 2</small>${B2.n}</span></div>
       ${opts.map((u,i)=>`<button type="button" class="mu" data-u="${i}" style="left:${pos(i)}%" aria-label="${u.name}"><img src="${uSpr(u)}" alt=""${pos(i)>50?' class="fl"':''}><span>${u.name}</span></button>`).join('')}
       <span class="tv-gold">Seed ${run.seed}</span></div>
-    <div class="tv-box"><div class="tv-name">The Crossroads</div>
-      <p class="tv-text">Dawn breaks over the crossroads. ${n} travellers answered your call, but the road only has room for ${need}. Beyond lies the <b>${B1.n}</b>, and after it the <b>${B2.n}</b>. Tap a traveller to meet them.</p>
-      <div class="ms-card"></div>
-      <div class="mbtns"><button type="button" data-g="back">Back</button><button type="button" class="go" data-g="go" disabled>March (0/${need})</button></div></div>`;
+    <div class="tv-box"><div class="ms-head"><b class="ms-count"></b><button type="button" class="mini ms-info" data-g="info" aria-expanded="false">ⓘ What do stats do?</button></div>${statHelpHTML()}
+      <div class="ms-cards"></div>
+      <div class="mbtns"><button type="button" data-g="back">Back</button><button type="button" class="go" data-g="go" disabled>March</button></div></div>`;
   musEl.hidden=false;
-  const draw=()=>{musEl.querySelectorAll('.mu').forEach(b=>b.classList.toggle('on',chosen.has(+b.dataset.u)));
-    const g=musEl.querySelector('[data-g="go"]');g.disabled=chosen.size!==need;g.textContent=`March (${chosen.size}/${need})`;
-    musEl.querySelector('.ms-card').innerHTML=focus==null?'':`<div class="dcard${chosen.has(focus)?' on':''}">${unitCard(opts[focus],chosen.has(focus))}</div>`};
+  const draw=()=>{musEl.querySelectorAll('.mu').forEach(b=>b.classList.toggle('on',chosen.includes(+b.dataset.u)));
+    const g=musEl.querySelector('[data-g="go"]');g.disabled=chosen.length!==need;g.textContent=`March (${chosen.length}/${need})`;
+    musEl.querySelector('.ms-count').textContent=chosen.length===need?'Your squad is ready.':`Tap ${need-chosen.length===need?need:need-chosen.length} more traveller${need-chosen.length===1?'':'s'} to bring along.`;
+    musEl.querySelector('.ms-cards').innerHTML=chosen.map(i=>{const u=opts[i],sk=SKILLS[u.skill];return`<div class="dcard on">${unitCard(u)}<button type="button" class="mini ms-x" data-u="${i}" aria-label="Remove ${u.name}">✕</button><p class="ms-sk"><b>${sk.n}:</b> ${sk.d}</p></div>`}).join('')};
+  draw();
   return new Promise(res=>{musEl.onclick=e=>{
-    const u=e.target.closest('[data-u]');if(u){const i=+u.dataset.u;focus=i;if(chosen.has(i))chosen.delete(i);else if(chosen.size<need)chosen.add(i);else{toast(`Only ${need} can march. Tap a chosen traveller to swap.`)}sfx('tick');draw();return}
-    const g=e.target.closest('[data-g]');if(!g||g.disabled)return;musEl.onclick=null;musEl.hidden=true;sfx('select');
-    res(g.dataset.g==='go'?opts.filter((_,i)=>chosen.has(i)):null)}});
+    const u=e.target.closest('[data-u]');if(u){const i=+u.dataset.u,k=chosen.indexOf(i);if(k>=0)chosen.splice(k,1);else if(chosen.length<need)chosen.push(i);else toast(`Only ${need} can march. Remove someone first.`);sfx('tick');draw();return}
+    const g=e.target.closest('[data-g]');if(!g||g.disabled)return;
+    if(g.dataset.g==='info'){const h=musEl.querySelector('.stathelp');h.hidden=!h.hidden;g.setAttribute('aria-expanded',String(!h.hidden));return}
+    musEl.onclick=null;musEl.hidden=true;sfx('select');
+    res(g.dataset.g==='go'?chosen.map(i=>opts[i]):null)}});
 }
 
 /* ---- flow ---- */
