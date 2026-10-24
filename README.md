@@ -49,8 +49,15 @@ Each run picks 2 of these as its acts (`BIOMES`, `ACTS`). Each has 2-3 battle ma
 - Flying units (`MOVES.flying`, needs the Sky Riders unlock): pegasus riders for skirmishers, casters and menders, wyverns for brutes and guards. Drawn by `horseUnder()` with wings.
 - Relics (`RELICS`): team passives for the run. Elites offer 1 of 2, the Act 1 boss 1 of 3, treasure rooms sometimes hold one. Combat effects go through `relicCalc()`, move through `relicMov()`. Shown on the map; tap one to read it.
 - Act 2 (`run.act`): a second 9-floor map after the Act 1 boss, with gremlins, gloomwings, mindsnails and storm harpies added, and the Lamia Queen in the Serpent Palace as the final boss.
-- Unlocks (`UNLOCKS`, Camp on the title screen): Essence is earned per win (4 battle, 8 elite, 20 boss, +20 for finishing); a failed run keeps half. Unlocks: Second Look (reroll), Old Relics, Wider Draft, Sky Riders, Heirloom (starting relic), Veterans (Lv 2 draft). Saved in `embermarch2.profile`.
+- Progression (saved in `embermarch2.profile`, shown under Records on the title screen):
+  - Relics: 12 are open from the start; 6 more join the pool after 2, 4 and 6 runs (`RELICS[k].x`).
+  - Ascension (`ASC`, up to 5): winning at your highest level opens the next. Each level adds to the last: +1 enemy level; tougher bosses and elite leaders; no early ease and no starting gold; another +1 level and +1 enemy per battle; every enemy has a skill.
+  - Achievements (`ACH`), checked when a run ends. Some unlock extras (`UNLOCKS`): Field Hospital (3 Menders) → Heirloom, Volley (3 bow users) → Wider Draft, Cavalry Charge (3 mounted) → Sky Riders, Full House (6 units) → Second Look, Not a Scratch (no losses) → Veterans. Badge-only: First March, Arcane Circle, Sky Fleet, Feast, Cartographer.
+  - Run History (title screen) is in development; runs are already recorded in `prof.hist`.
+- Gear (`t:'gear'`): Leather Armour, Chainmail, Warding Cloak, Traveller's Boots, Iron Gauntlets. Bonuses apply while carried (one of each counts; `gearOf()`). Found in treasure rooms and monster drops.
+- Trade: a unit next to an ally gets a Trade option. Salves, scrolls and gear can be passed across; weapons can't. Trading doesn't use the unit's action.
+- Tutorials: tips appear the first time you reach each screen; every tip has a Turn off tutorials button (back on in Options).
 - Magic: fire > nature > water > fire, light > dark. Dark sigils drain 25% of damage dealt.
 
 ## Not built yet
-Archetypes (named unlockable classes), more events, Act 3.
+Run History screen, archetypes (named unlockable classes), more events, Act 3.

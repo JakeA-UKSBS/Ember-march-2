@@ -410,6 +410,10 @@ button.it.sel{border-color:var(--gold)}
 .nd.pick{border-color:var(--gold);background:color-mix(in srgb,var(--gold) 25%,var(--panel2))}
 .nm-relics{display:flex;gap:4px;flex-wrap:wrap}.rl.ml{position:relative}.rl.ml i{position:absolute;right:1px;bottom:0;font:700 10px var(--body);font-style:normal;color:var(--gold)}
 .gold{color:#f0c850;font-weight:700}
+.devtag{display:inline-block;margin-left:6px;padding:1px 6px;border-radius:4px;background:#7a3a2a;color:#ffd8c8;font:700 11px var(--body);letter-spacing:.04em;vertical-align:middle;text-transform:uppercase}
+.trade{display:grid;grid-template-columns:1fr 1fr;gap:8px}.tcol{min-width:0;display:flex;flex-direction:column;gap:4px}@media (max-width:520px){.trade{grid-template-columns:1fr}}
+.news{display:flex;flex-direction:column;gap:4px;background:var(--panel2);border:1px solid var(--gold);border-radius:8px;padding:8px 10px}.news p{margin:0;color:var(--fg)}
+.it.ach{cursor:default;opacity:.7}.it.ach.got{opacity:1;border-color:var(--gold)}.it.ach small{color:var(--muted)}
 .nd.n-start{border-color:#c98a4a;opacity:1}
 .mu{position:absolute;bottom:4%;width:13%;transform:translateX(-50%);background:none;border:0;padding:0;display:flex;flex-direction:column;align-items:center;gap:2px;cursor:pointer;transition:transform .15s}
 .tv-scene .mu img{position:static;width:100%;image-rendering:pixelated;filter:drop-shadow(0 2px 0 rgba(0,0,0,.45))}.mu img.fl{transform:scaleX(-1)}
@@ -919,6 +923,7 @@ function iconArt(k){
   if(kd==='crest'){p.poly([[8,1],[12,5],[13,11],[3,11],[4,5]],GOLD);p.poly([[8,2],[10,5],[11,10],[8,10]],'#f3dc9a');p.rect(2,11,12,2,'#b8912f');p.ell(8,14,1.6,1.4,'#9fd8ff')}
   if(kd==='claw'){for(let i=0;i<3;i++)p.line(3+i*4,14,7+i*3,3,'#e8e2d0',1);p.line(3,14,13,14,'#8a7a5a')}
   if(kd==='pill'){p.ell(8,11,4.5,4,'#c98a3a');p.ell(8,5,2.6,2.4,'#c98a3a');p.rect(7,1,2,2,RED);p.set(6,10,'#f3d9a6')}
+  if(['armor','cloak','boots','gauntlet'].includes(kd))gearArt(p,kd,w);
   if(w.thrown)p.set(1,1,GOLD);
   if(w.forge)for(let i=0;i<w.forge;i++)p.rect(13,1+i*3,2,2,'#ffe14a');
   p.outline(OUT);return p.url();
@@ -1042,16 +1047,16 @@ function minRange(u){let m=9;u.items.forEach(it=>{if((isWpn(it.k)||IT[it.k].t===
 function aura(u){if(u.team!=='p')return 0;const l=state.units.find(o=>has(o,'rally')&&o.hp>0&&o.team===u.team&&o.id!==u.id);return l&&man(l,u)<=2?10:0}
 
 function calc(x,xw,y,yw,ctx){
-  const t=ter(y.x,y.y),RB=relicCalc(x,xw,y);let adv=0;
+  const t=ter(y.x,y.y),RB=relicCalc(x,xw,y),gx=gearOf(x),gy=gearOf(y);let adv=0;
   if(yw&&TRI[xw.t]===yw.t)adv=1;else if(yw&&TRI[yw.t]===xw.t)adv=-1;
   if(yw&&xw.t==='art'&&yw.t==='art'){if(ELE[xw.el]===yw.el)adv=1;else if(ELE[yw.el]===xw.el)adv=-1}
-  let pow=(xw.mag?x.mag:x.str)+xw.mt*(xw.t==='bow'&&CLS[y.cls].fly?3:1)+adv+RB.pow;if(has(x,'kindle')&&ctx.init===x)pow+=2;
-  const yf=!!CLS[y.cls].fly;let df=(xw.mag?y.res:y.def)+(yf?0:t.df)+RB.df;if(has(y,'brace')&&ctx.phase==='enemy'&&ctx.init!==y)df+=4;
+  let pow=(xw.mag?x.mag:x.str)+xw.mt*(xw.t==='bow'&&CLS[y.cls].fly?3:1)+adv+RB.pow+(xw.mag?0:gx.str);if(has(x,'kindle')&&ctx.init===x)pow+=2;
+  const yf=!!CLS[y.cls].fly;let df=(xw.mag?y.res+gy.res:y.def+gy.def)+(yf?0:t.df)+RB.df;if(has(y,'brace')&&ctx.phase==='enemy'&&ctx.init!==y)df+=4;
   const dead=has(x,'deadeye');
   const acc=xw.hit+x.skl*2+Math.floor(x.lck/2)+adv*15+aura(x)+(dead?20:0)+RB.acc;
-  const avo=y.spd*2+y.lck+(dead||yf?0:t.av)+aura(y)+RB.avo;
+  const avo=(y.spd+gy.spd)*2+y.lck+(dead||yf?0:t.av)+aura(y)+RB.avo;
   let crit=RB.crit+(xw.crit||0)+(CLS[x.cls].crit||0)+Math.floor(x.skl/2)-y.lck;if(has(x,'focus')&&!state.units.some(o=>o!==x&&o.team===x.team&&o.hp>0&&man(o,x)===1))crit+=10;if(has(x,'fury')&&x.hp*2<=x.maxhp)crit+=15;
-  return{dmg:Math.max(0,pow-df),pow,df,hit:clamp(acc-avo,0,100),crit:clamp(crit,0,100),n:x.spd+(has(x,'swift')&&ctx.init===x?3:0)-y.spd>=4?2:1,adv};
+  return{dmg:Math.max(0,pow-df),pow,df,hit:clamp(acc-avo,0,100),crit:clamp(crit,0,100),n:x.spd+gx.spd+(has(x,'swift')&&ctx.init===x?3:0)-y.spd-gy.spd>=4?2:1,adv};
 }
 function forecast(a,ai,d){
   const dist=man(a,d),aw=IT[a.items[ai].k],dl=d.stone?[]:wpnsAt(d,dist),di=dl.length?dl[0]:-1,dw=di>=0?IT[d.items[di].k]:null,ctx={init:a,phase};
@@ -1100,7 +1105,7 @@ function reach(u){
   while(q.length){
     q.sort((a,b)=>dist[key(...a)]-dist[key(...b)]);const[x,y]=q.shift(),d=dist[key(x,y)];
     for(const[dx,dy]of DIRS){const nx=x+dx,ny=y+dy;if(nx<0||ny<0||nx>=MW||ny>=MH)continue;
-      const nd=d+mcost(u,nx,ny);if(nd>u.mov+relicMov(u)-slowOf(u))continue;const o=unitAt(nx,ny);if(o&&hostile(o,u))continue;
+      const nd=d+mcost(u,nx,ny);if(nd>u.mov+relicMov(u)+gearOf(u).mov-slowOf(u))continue;const o=unitAt(nx,ny);if(o&&hostile(o,u))continue;
       const k=key(nx,ny);if(dist[k]===undefined||nd<dist[k]){dist[k]=nd;q.push([nx,ny])}}
   }
   const s=new Set();for(const k in dist){const[x,y]=k.split(',').map(Number),o=unitAt(x,y);if(!o||o===u)s.add(k)}return s;
@@ -1210,7 +1215,7 @@ function card(u){
    <div class="ch"><b>${u.name}</b><span>${CLS[u.cls].n} · Lv ${u.lv}</span></div>
    <div class="hp"><span class="bar"><i style="width:${u.hp/u.maxhp*100}%"></i></span><span>${u.hp}/${u.maxhp} HP</span></div>
    ${u.team==='p'?`<div class="xp"><span class="bar"><i style="width:${u.exp}%"></i></span><span>${u.exp} EXP</span></div>`:''}
-   <div class="eq">${w?`<img src="${icon(w.key)}" alt="">${w.n}`:'Unarmed'}${sk?` · <b class="sk">${sk.n}</b>`:''} · ${terrText(t)}${u.psn?` · <b class="psnt">Poisoned (${u.psn})</b>`:''}</div>
+   <div class="eq">${w?`<img src="${icon(w.key)}" alt="">${w.n}`:'Unarmed'}${sk?` · <b class="sk">${sk.n}</b>`:''} · ${terrText(t)}${u.psn?` · <b class="psnt">Poisoned (${u.psn})</b>`:''}${(()=>{const g=gearOf(u),t=Object.entries(g).filter(([,v])=>v).map(([k,v])=>`${v>0?'+':''}${v} ${GEAR_N[k]}`);return t.length?` · Gear ${t.join(', ')}`:''})()}</div>
    ${u.recruit?`<div class="eq sk">Can be recruited: move ${lordName()} next to ${u.name} and Talk.</div>`:''}
   </div><button class="mini" type="button" data-act="sheet:${u.id}">Details</button></div>`;
   return h;
@@ -1250,7 +1255,8 @@ function skillBlock(u){
 function rngTxt(r){return r[0]===r[1]?r[0]:r[0]+'–'+r[1]}
 function itemInfo(u,k){
   const x=IT[k];
-  if(x.t==='item')return`<b>${x.n}</b> · Restores ${x.amt} HP.`;
+  if(x.t==='item')return`<b>${x.n}</b> · Restores ${x.amt} HP and cures poison. Can be traded.`;
+  if(x.t==='gear')return`<b>${x.n}</b> · Gear · ${gearText(x)} while carried. Can be traded.`;
   if(x.t==='scroll'){const sk=SKILLS[x.skill];return`<b>${x.n}</b> · Teaches ${sk.n} (cost ${sk.cost}). ${sk.d} Use it from the Items menu.`}
   if(x.t==='crest')return`<b>${x.n}</b> · Lets a unit at Lv ${PROMO_LV}+ ascend to a stronger class, with +${PROMO_CAP} skill capacity.`;
   if(x.t==='spirit')return`<b>${x.n}</b> · ${TN.spirit} · Heals ${x.amt} HP · Rng ${rngTxt(x.r)}`+(canUse(u,k)?'':` · ${u.name} can't use this.`);
@@ -1287,14 +1293,14 @@ function renderPanel(){
   else if(ui==='move')h=card(u)+`<p class="hint">Tap a blue tile to move, or a red enemy to attack it from the best tile. Tap ${u.name} to act in place.</p><div class="acts"><button type="button" data-act="cancel">Cancel</button></div>`;
   else if(ui==='menu'){
     const at=atkTargets(u).length,ht=healTargets(u).length,gf=giftHere(u),tk=talkTarget(u);
-    h=card(u)+threatLine(key(u.x,u.y))+`<div class="acts">${tk?'<button class="go" type="button" data-act="talk">Talk</button>':''}${at?'<button class="go" type="button" data-act="attack">Attack</button>':''}${ht?'<button class="go" type="button" data-act="heal">Heal</button>':''}${gf?`<button class="go" type="button" data-act="gift">${gf.kind}</button>`:''}<button type="button" data-act="items">Items</button><button type="button" data-act="wait">Wait</button><button type="button" data-act="cancel">Back</button></div>`;
+    h=card(u)+threatLine(key(u.x,u.y))+`<div class="acts">${tk?'<button class="go" type="button" data-act="talk">Talk</button>':''}${at?'<button class="go" type="button" data-act="attack">Attack</button>':''}${ht?'<button class="go" type="button" data-act="heal">Heal</button>':''}${gf?`<button class="go" type="button" data-act="gift">${gf.kind}</button>`:''}<button type="button" data-act="items">Items</button>${tradeMates(u).length?'<button type="button" data-act="trade">Trade</button>':''}<button type="button" data-act="wait">Wait</button><button type="button" data-act="cancel">Back</button></div>`;
   }
   else if(ui==='items'){
     const it=itemSel!=null?u.items[itemSel]:null;let ops='';
     if(it){if(isWpn(it.k)&&canUse(u,it.k)&&itemSel!==eqIdx(u))ops+='<button class="go" type="button" data-act="equip">Equip</button>';if(IT[it.k].t==='item'&&(u.hp<u.maxhp||u.psn))ops+='<button class="go" type="button" data-act="use">Use</button>';if(IT[it.k].t==='scroll'){const r=learnBlock(u,IT[it.k].skill);ops+=r?`<span class="hint">${r}</span>`:`<button class="go" type="button" data-act="learn">Learn ${SKILLS[IT[it.k].skill].n} (${SKILLS[IT[it.k].skill].cost})</button>`}if(IT[it.k].t==='crest'){const r=promoBlock(u);ops+=r?`<span class="hint">${r}</span>`:`<button class="go" type="button" data-act="ascend">Ascend…</button>`}if(isWpn(it.k)&&!canUse(u,it.k))ops+=`<span class="hint">${u.name} can't wield this.</span>`}
     h=`<div class="ch"><b>${u.name}</b><span>Items · ${u.hp}/${u.maxhp} HP</span></div>`+itemRows(u,true)+`<div class="acts">${ops}<button type="button" data-act="menu">Back</button></div>`;
   }
-  else if(ui==='target'){const gf=giftHere(u),tk=talkTarget(u);h=`<p class="hint">Tap a highlighted ${tmode==='heal'?'ally to heal':'enemy to see the forecast'}, then tap it again to ${tmode==='heal'?'heal':'attack'}.</p><div class="acts">${tk?'<button class="go" type="button" data-act="talk">Talk</button>':''}${gf?`<button class="go" type="button" data-act="gift">${gf.kind}</button>`:''}<button type="button" data-act="items">Items</button><button type="button" data-act="wait">Wait</button><button type="button" data-act="menu">Menu</button></div>`}
+  else if(ui==='target'){const gf=giftHere(u),tk=talkTarget(u);h=`<p class="hint">Tap a highlighted ${tmode==='heal'?'ally to heal':'enemy to see the forecast'}, then tap it again to ${tmode==='heal'?'heal':'attack'}.</p><div class="acts">${tk?'<button class="go" type="button" data-act="talk">Talk</button>':''}${gf?`<button class="go" type="button" data-act="gift">${gf.kind}</button>`:''}<button type="button" data-act="items">Items</button>${tradeMates(u).length?'<button type="button" data-act="trade">Trade</button>':''}<button type="button" data-act="wait">Wait</button><button type="button" data-act="menu">Menu</button></div>`}
   else if(ui==='confirm'){
     if(tmode==='heal'){const si=staffIdx(u),w=IT[u.items[si].k],amt=Math.min(w.amt,pending.maxhp-pending.hp);
       h=`<div class="wsel"><img src="${icon(w.key)}" alt="">${w.n}</div><p class="hint">Heal <b>${pending.name}</b>: ${pending.hp} → ${pending.hp+amt} HP. Tap ${pending.name} again or press Heal.</p><div class="acts"><button class="go" type="button" data-act="doheal">Heal</button><button type="button" data-act="back">Back</button></div>`}
@@ -1510,8 +1516,8 @@ async function evolveCheck(u){if(u.team!=='p'||CLS[u.cls].tier===2||!CLS[u.cls].
 function tip(id,title,text){
   if(!settings.tips||settings.seen.includes(id)||!modalEl.hidden)return;
   settings.seen.push(id);saveOpts();
-  modalEl.innerHTML=`<div class="mbox tipbox"><div class="eyebrow">Tip</div><h2>${title}</h2><p>${text}</p><div class="mbtns"><button class="go" type="button" data-m="ok">Got it</button></div></div>`;
-  modalEl.hidden=false;modalEl.onclick=e=>{if(e.target.closest('[data-m]')){modalEl.hidden=true;modalEl.onclick=null}};
+  modalEl.innerHTML=`<div class="mbox tipbox"><div class="eyebrow">Tip</div><h2>${title}</h2><p>${text}</p><div class="mbtns"><button type="button" data-m="off">Turn off tutorials</button><button class="go" type="button" data-m="ok">Got it</button></div><p class="hint">You can turn them back on in Options.</p></div>`;
+  modalEl.hidden=false;modalEl.onclick=e=>{const b=e.target.closest('[data-m]');if(b){if(b.dataset.m==='off'){settings.tips=false;saveOpts();toast('Tutorials off')}modalEl.hidden=true;modalEl.onclick=null}};
 }
 function saveOpts(){try{localStorage.setItem(OPTS,JSON.stringify(settings))}catch(_){}}
 async function optionsMenu(fromTitle){
@@ -1607,6 +1613,7 @@ async function act(a){
   if(a==='heal'){targets=healTargets(u);tmode='heal';pending=null;ui='target';render();return}
   if(a==='back'){pending=null;ui='target';render();return}
   if(a==='items'){itemSel=null;ui='items';render();return}
+  if(a==='trade'){busy=true;await tradeWith(u);busy=false;render();return}
   if(a.startsWith('item:')){itemSel=+a.slice(5);render();return}
   if(a==='equip'){const it=u.items.splice(itemSel,1)[0];u.items.unshift(it);itemSel=0;render();return}
   if(a==='wprev'||a==='wnext'){const l=wpnsAt(u,man(u,pending)),i=l.indexOf(pendW);pendW=l[(i+(a==='wnext'?1:l.length-1))%l.length];render();return}
@@ -2026,10 +2033,10 @@ function genBattle(n,kind){
   const act=run&&run.act||1,B=actBiome(),bossFight=kind==='boss',elite=kind==='elite',ship=B.id==='ship';
   const mk=bossFight?B.bossMap:pick(B.maps),m=MAPS[mk];
   /* difficulty climbs with the floor and the act: act 1 floor 1 is Lv 1, act 1 floor 9 is Lv 6, act 2 starts at Lv 7 */
-  const fl=run&&run.n||1,diff=(act-1)*10+fl,lvBase=1+Math.floor(diff*.6);
+  const fl=run&&run.n||1,diff=(act-1)*10+fl,lvBase=1+Math.floor(diff*.6)+(A(1)?1:0)+(A(4)?1:0);
   const pool=(elite?B.elitePool:B.pool).filter(p=>act>=2||fl>=(p[2]||1)),tot=pool.reduce((a,p)=>a+p[1],0);
   const roll=()=>{let r=rand()*tot;for(const[c,w]of pool){if((r-=w)<0)return c}return pool[0][0]};
-  const count=bossFight?(act>=2?5:4):Math.min(7,(ship?1:2)+Math.floor(fl/3)+(act-1)*2+(elite?1:0)),list=elite?[B.elitePool[0][0]]:[];
+  const count=bossFight?(act>=2?5:4):Math.min(7,(ship?1:2)+Math.floor(fl/3)+(act-1)*2+(elite?1:0)+(A(4)?1:0)),list=elite?[B.elitePool[0][0]]:[];
   while(list.length<count){const c=roll();list.push(c);if(c==='Wolf'&&list.length<count&&rand()<.6)list.push('Wolf')}
   const bossName=B.boss.name||pick(BOSSN)+' '+pick(BOSST),turns=ship&&!bossFight?(elite?6:5):0;
   const goal=bossFight?'boss':ship?'defend':'rout';
@@ -2037,11 +2044,12 @@ function genBattle(n,kind){
     intro:bossFight?`${bossName} waits for you in the ${m.n}. Defeat it to clear the ${B.n}.`:ship?`Fliers are diving on the ship. Hold the deck for ${turns} turns.`:elite?`A pack led by something old and strong holds the ${m.n.toLowerCase()}. Rout them all.`:`${count} monsters wait in the ${m.n.toLowerCase()}. Rout them.`};
   def.foes=()=>{const tiles=spawnTiles(m),out=[];
     list.forEach((c,i)=>{const lv=Math.max(1,lvBase+(rand()<.3?1:0)-(c==='Wolf'?1:0)+(elite?2:0)),u=mkMon(c,lv),t=tiles[i%tiles.length];u.x=t.x;u.y=t.y;
-      if(elite&&i===0){u.name='Elder '+u.name;u.boss=true;ST.forEach(k=>{if(k==='hp'){u.maxhp+=6;u.hp+=6}else u[k]+=2});u.skill=u.skill||pick(['fury','brace','swift','shieldwall'])}
-      if(rand()<.2){const k=pick(['qiPill','qiPill','steelJian','steelAxe','steelSpear','steelBow']);u.items.push({k,u:IT[k].uses,d:true})}out.push(u)});
+      if(elite&&i===0){u.name='Elder '+u.name;u.boss=true;const eb=A(2)?2:1;ST.forEach(k=>{if(k==='hp'){u.maxhp+=6*eb;u.hp+=6*eb}else u[k]+=2*eb});u.skill=u.skill||pick(['fury','brace','swift','shieldwall'])}
+      if(rand()<.2){const k=pick(['qiPill','qiPill','steelJian','steelAxe','steelSpear','steelBow','leather','cloak','boots']);u.items.push({k,u:IT[k].uses,d:true})}out.push(u)});
     if(bossFight){let bx=6,by=3;m.map.forEach((r,y)=>{const x=r.indexOf('T');if(x>=0){bx=x;by=y}});
-      const b=B.boss,up=[10,3,3,3,2,2,3,3].map(v=>v*(act-1));
+      const b=B.boss,up=[10,3,3,3,2,2,3,3].map((v,i)=>v*(act-1)+(A(2)?[8,2,2,1,1,0,2,2][i]:0));
       out.push(boss({id:'boss',name:bossName,cls:b.cls,lv:6+6*(act-1),mov:b.mov||0,x:bx,y:by,s:b.s.map((v,i)=>v+up[i]),items:b.items,skill:b.skill,look:b.look?clone(b.look):monLook(b.cls)}))}
+    if(A(5))out.forEach(u=>{if(!u.skill)u.skill=pick(['fury','brace','swift','shieldwall','focus'])});
     return out};
   /* reinforcements are plain data so they survive a save: {turn:[{c,lv,x,y,ifBoss}]} */
   const W={};
@@ -2142,11 +2150,12 @@ function mapScreen(){
   const nodes=M.map((row,r)=>row.map((n,i)=>{const cur=run.pos&&run.pos.r===r&&run.pos.i===i,c=['nd','n-'+n.t,isOk(r,i)?'ok':'',vis.has(r+','+i)?'vis':'',cur?'cur':''].join(' ');
     return`<button type="button" class="${c}" style="left:${n.x}%;top:${Y(r)}px" data-n="${r},${i}" ${isOk(r,i)?'':'tabindex="-1"'} aria-label="${NODE_N[n.t]}"><img src="${nodeIcon(n.t)}" alt=""></button>`}).join('')).join('')
     +`<button type="button" class="nd n-start ${run.pos?'vis':'cur'}" style="left:50%;top:${Y(-1)}px" data-start="1" aria-label="Start"><img src="${flagArt()}" alt=""></button>`;
-  mapEl.innerHTML=`<div class="nm-head"><div class="eyebrow">Act ${run.act||1} of ${ACTS} · Seed ${run.seed} · <span class="ess">${run.ess||0} Essence</span> · <span class="gold">${gold()} gold</span></div><h2>${actBiome().n}</h2></div>
+  mapEl.innerHTML=`<div class="nm-head"><div class="eyebrow">Act ${run.act||1} of ${ACTS} · Seed ${run.seed}${run.asc?` · Ascension ${run.asc}`:''} · <span class="gold">${gold()} gold</span></div><h2>${actBiome().n}</h2></div>
     <div class="nm-scroll"><div class="nm-board" style="height:${H}px"><svg viewBox="0 0 100 ${H}" preserveAspectRatio="none" width="100%" height="${H}">${lines}</svg>${nodes}</div></div>
     ${(run.relics||[]).length||(run.meals||[]).length?`<div class="nm-relics">${(run.relics||[]).map(k=>`<button type="button" class="rl" data-rel="${k}" aria-label="${RELICS[k].n}"><img src="${relicArt(k)}" alt=""></button>`).join('')}${(run.meals||[]).map(x=>`<button type="button" class="rl ml" data-meal="${x.id}" aria-label="${MEALS[x.id].n}"><img src="${mealArt(x.id)}" alt=""><i>${x.n}</i></button>`).join('')}</div>`:''}
     <div class="nm-info">Tap a glowing node.</div>
     <div class="nm-squad">${run.roster.map(u=>`<div><img src="${uSpr(u)}" alt=""><span>${u.name}</span><small>Lv ${u.lv}</small></div>`).join('')}</div>`;
+  tip('map','The road ahead','Tap a glowing room to see what it is, then tap it again to go there. Every route has the same rooms in a different order: 3 battles, an elite (the red skull), a recruit, a tavern, a rest, an event and a treasure room, then the boss.');
   mapEl.hidden=false;mapEl.style.background=`radial-gradient(ellipse at 50% 0%,${actBiome().bg},#121018 72%)`;
   const sc=mapEl.querySelector('.nm-scroll'),focus=ok[0]?Y(ok[0].r):H;sc.scrollTop=Math.max(0,focus-sc.clientHeight/2);
   return new Promise(res=>{let sel=null;mapEl.onclick=e=>{
@@ -2197,7 +2206,7 @@ const weaponOf=u=>u.items.find(it=>(isWpn(it.k)||IT[it.k].t==='spirit')&&canUse(
 
 /* ---- treasure: pick 1 of 3 items, then who carries it ---- */
 async function treasureNode(){
-  const pool=['steelJian','steelAxe','steelSpear','steelBow','moonDao','greatsword','javelin','throwAxe','crossbow','thunderT','greaterMend','qiPill',...Object.keys(SKILLS).filter(k=>k!=='rally').map(k=>'scroll_'+k)];
+  const pool=['steelJian','steelAxe','steelSpear','steelBow','moonDao','greatsword','javelin','throwAxe','crossbow','thunderT','greaterMend','qiPill','leather','chain','cloak','boots','gauntlet',...Object.keys(SKILLS).filter(k=>k!=='rally').map(k=>'scroll_'+k)];
   const mk=()=>{const o=shuffle(pool.slice()).slice(0,3),rp=relicPool(['c','u']);if(rp.length&&rand()<.4)o[2]='relic:'+pick(rp);return o};
   let opts=mk();
   for(;;){
@@ -2245,30 +2254,65 @@ async function eventNode(){
 }
 
 
-/* ---- profile: Essence and unlocks, kept between runs ---- */
+/* ---- profile: what carries over between runs (runs played, wins, ascension, achievements, unlocks) ---- */
 const PROF='embermarch2.profile';
-let prof={essence:0,un:[],runs:0,wins:0};
+let prof={un:[],runs:0,wins:0,asc:0,ach:[],bosses:[]};
 function loadProf(){try{const p=JSON.parse(localStorage.getItem(PROF));if(p)prof=Object.assign(prof,p)}catch(_){}}
 function saveProf(){try{localStorage.setItem(PROF,JSON.stringify(prof))}catch(_){}}
 const unl=k=>prof.un.includes(k);
-const UNLOCKS=[
-  {id:'reroll',n:'Second Look',c:25,d:'Once per act, reroll a recruit or treasure offer.'},
-  {id:'relics2',n:'Old Relics',c:30,d:'Adds 6 more relics to the pool.'},
-  {id:'draft6',n:'Wider Draft',c:35,d:'The opening draft offers 6 units instead of 5.'},
-  {id:'flying',n:'Sky Riders',c:40,d:'Pegasus and wyvern riders can join, and promotions can take to the air.'},
-  {id:'startRelic',n:'Heirloom',c:60,d:'Start each run by choosing 1 of 2 relics.'},
-  {id:'veterans',n:'Veterans',c:80,d:'Your starting draft is Lv 2.'}
+/* rewards that achievements hand out */
+const UNLOCKS={
+  reroll:{n:'Second Look',d:'Once per act, reroll a recruit or treasure offer.'},
+  draft6:{n:'Wider Draft',d:'The Crossroads offers 6 travellers instead of 5.'},
+  flying:{n:'Sky Riders',d:'Pegasus and wyvern riders can join, and promotions can take to the air.'},
+  startRelic:{n:'Heirloom',d:'Start each run by choosing 1 of 2 relics.'},
+  veterans:{n:'Veterans',d:'Your Crossroads travellers start at Lv 2.'}
+};
+/* achievements: checked when a run ends. sq = the squad still standing at the end */
+const isRole=(u,r)=>u.cls.startsWith(`G.${r}.`),wields=(u,t)=>CLS[u.cls].w.includes(t);
+const ACH=[
+  {id:'first',n:'First March',d:'Finish a run.',win:1,ok:()=>true,rw:null},
+  {id:'hospital',n:'Field Hospital',d:'Finish a run with 3 or more Menders in the squad.',win:1,ok:sq=>sq.filter(u=>isRole(u,'support')).length>=3,rw:'startRelic'},
+  {id:'volley',n:'Volley',d:'Finish a run with 3 or more bow users in the squad.',win:1,ok:sq=>sq.filter(u=>wields(u,'bow')).length>=3,rw:'draft6'},
+  {id:'cavalry',n:'Cavalry Charge',d:'Finish a run with 3 or more mounted units in the squad.',win:1,ok:sq=>sq.filter(u=>CLS[u.cls].mnt&&!CLS[u.cls].fly).length>=3,rw:'flying'},
+  {id:'fullhouse',n:'Full House',d:'Finish a run with a full squad of 6.',win:1,ok:sq=>sq.length>=6,rw:'reroll'},
+  {id:'untouched',n:'Not a Scratch',d:'Finish a run without losing a single unit.',win:1,ok:()=>!run.lost,rw:'veterans'},
+  {id:'arcane',n:'Arcane Circle',d:'Finish a run with 3 or more sigil casters in the squad.',win:1,ok:sq=>sq.filter(u=>wields(u,'art')&&!isRole(u,'support')).length>=3,rw:null},
+  {id:'skyfleet',n:'Sky Fleet',d:'Finish a run with 3 or more fliers in the squad.',win:1,ok:sq=>sq.filter(u=>CLS[u.cls].fly).length>=3,rw:null},
+  {id:'feast',n:'Feast',d:'Eat 4 meals at taverns in one run.',ok:()=>(run.ate||0)>=4,rw:null},
+  {id:'explorer',n:'Cartographer',d:'Defeat the boss of every region, across any number of runs.',ok:()=>Object.keys(BIOMES).every(b=>prof.bosses.includes(b)),rw:null}
 ];
-async function campScreen(){
-  for(;;){
-    const m=await modal(`<div class="eyebrow">Camp · ${prof.runs} run${prof.runs===1?'':'s'} · ${prof.wins} won</div><h2>Unlocks</h2><p>You have <b class="ess">${prof.essence} Essence</b>. Earn it by winning fights; a failed run keeps half.</p>
-      <div class="inv">${UNLOCKS.map(x=>{const own=unl(x.id),can=!own&&prof.essence>=x.c;return`<button type="button" class="it" data-m="${own||!can?'no':'b'+x.id}"${own||!can?' aria-disabled="true"':''}><span><b>${x.n}</b> · ${x.d}</span><em>${own?'Owned':x.c+' Essence'}</em></button>`}).join('')}</div>
-      <div class="mbtns"><button class="go" type="button" data-m="back">Back</button></div>`);
-    if(m==='back')return;if(m==='no')continue;
-    const x=UNLOCKS.find(u=>'b'+u.id===m);prof.essence-=x.c;prof.un.push(x.id);saveProf();sfx('fanfare');toast(`${x.n} unlocked`);
-  }
+/* extra relics join the pool after this many runs (RELICS[k].x) */
+const relicOpen=k=>!RELICS[k].x||prof.runs>=RELICS[k].x;
+/* ascension: harder runs, one level opens each time you win at your highest level */
+const ASC_MAX=5;
+const ASC=['Normal','Enemies are 1 level higher.','Bosses and elite leaders are much tougher.','No early ease, and you start with no gold.','Enemies are another level higher, with one more in each battle.','Every enemy knows a combat skill.'];
+const A=n=>!!(run&&(run.asc||0)>=n);
+async function ascPick(){
+  if(!prof.asc)return 0;
+  const m=await modal(`<div class="eyebrow">New march</div><h2>Ascension</h2><p>Each level adds to the ones before it. Win at your highest level to open the next.</p>
+    <div class="inv">${Array.from({length:prof.asc+1},(_,i)=>`<button type="button" class="it" data-m="a${i}"><span><b>${i?'Ascension '+i:'Normal'}</b> · ${i?ASC[i]:'The standard march.'}</span></button>`).join('')}</div>
+    <div class="mbtns"><button type="button" data-m="back">Back</button></div>`);
+  return m==='back'?null:+m.slice(1);
 }
-function bankEssence(won){const got=won?run.ess:Math.floor(run.ess/2);prof.essence+=got;prof.runs++;if(won)prof.wins++;saveProf();return got}
+/* called once when a run ends; returns lines describing anything new */
+function endRun(won){
+  (prof.hist=prof.hist||[]).unshift({date:Date.now(),seed:run.seed,won,asc:run.asc||0,act:run.act||1,floor:run.n,regions:run.biomes,squad:(run.roster||[]).map(u=>({n:u.name,c:CLS[u.cls].n,lv:u.lv})),fallen:run.fallen||[],relics:run.relics||[]});prof.hist.length=Math.min(prof.hist.length,30);
+  const out=[],sq=run.roster||[],before=new Set(Object.keys(RELICS).filter(relicOpen));
+  prof.runs++;if(won){prof.wins++;if((run.asc||0)>=prof.asc&&prof.asc<ASC_MAX){prof.asc++;out.push(`<b>Ascension ${prof.asc}</b> is open: ${ASC[prof.asc]}`)}}
+  for(const a of ACH){if(prof.ach.includes(a.id)||(a.win&&!won)||!a.ok(sq))continue;prof.ach.push(a.id);
+    out.push(`Achievement: <b>${a.n}</b>${a.rw&&!unl(a.rw)?` · unlocks <b>${UNLOCKS[a.rw].n}</b> (${UNLOCKS[a.rw].d})`:''}`);if(a.rw&&!unl(a.rw))prof.un.push(a.rw)}
+  const fresh=Object.keys(RELICS).filter(k=>relicOpen(k)&&!before.has(k));if(fresh.length)out.push(`New relics join the pool: ${fresh.map(k=>`<b>${RELICS[k].n}</b>`).join(', ')}`);
+  saveProf();return out;
+}
+const newsHTML=lines=>lines.length?`<div class="news">${lines.map(l=>`<p>${l}</p>`).join('')}</div>`:'';
+async function recordsScreen(){
+  const nextRelic=Object.keys(RELICS).filter(k=>!relicOpen(k)).map(k=>RELICS[k].x).sort((a,b)=>a-b)[0];
+  await modal(`<div class="eyebrow">Records · ${prof.runs} run${prof.runs===1?'':'s'} · ${prof.wins} won · Ascension ${prof.asc} open</div><h2>Achievements</h2>
+    <div class="inv">${ACH.map(a=>{const got=prof.ach.includes(a.id);return`<div class="it ach${got?' got':''}"><span><b>${got?'✓ ':''}${a.n}</b> · ${a.d}${a.rw?`<br><small>Unlocks ${UNLOCKS[a.rw].n}: ${UNLOCKS[a.rw].d}</small>`:''}</span></div>`}).join('')}</div>
+    <p>${nextRelic?`More relics join the pool after ${nextRelic} run${nextRelic===1?'':'s'} (you have played ${prof.runs}).`:'Every relic is in the pool.'} Region bosses defeated: ${prof.bosses.length} of ${Object.keys(BIOMES).length}.</p>
+    <div class="mbtns"><button class="go" type="button" data-m="back">Back</button></div>`);
+}
 
 /* ---- relics: team passives for the rest of the run. r = rarity (c common, u uncommon, r rare); x = needs Old Relics ---- */
 const RELICS={
@@ -2284,18 +2328,18 @@ const RELICS={
   phoenix:{n:'Phoenix Feather',r:'r',d:'Once per run, the first unit to fall survives with 1 HP.'},
   crown:{n:'Slayer’s Crown',r:'r',d:'Units deal +4 damage to bosses and elite leaders.'},
   lantern:{n:'Pathfinder’s Lantern',r:'r',d:'Recruit nodes offer 4 units, 1 level higher.'},
-  quiver:{n:'Endless Quiver',r:'u',x:1,d:'Bows deal +3 damage.'},
-  focusgem:{n:'Focus Gem',r:'u',x:1,d:'Arts deal +2 damage and gain +10 Hit.'},
-  spurs:{n:'Golden Spurs',r:'u',x:1,d:'Mounted and flying units gain +1 Move and +10 Avoid.'},
-  bulwark:{n:'Iron Bulwark',r:'u',x:1,d:'Armoured units take 2 less damage.'},
-  anvil:{n:'Pocket Anvil',r:'r',x:1,d:'The Wandering Smith reforges twice.'},
-  mirror:{n:'Mirror Charm',r:'r',x:1,d:'Enemies get −10 Hit against your units.'}
+  quiver:{n:'Endless Quiver',r:'u',x:2,d:'Bows deal +3 damage.'},
+  focusgem:{n:'Focus Gem',r:'u',x:2,d:'Arts deal +2 damage and gain +10 Hit.'},
+  spurs:{n:'Golden Spurs',r:'u',x:4,d:'Mounted and flying units gain +1 Move and +10 Avoid.'},
+  bulwark:{n:'Iron Bulwark',r:'u',x:4,d:'Armoured units take 2 less damage.'},
+  anvil:{n:'Pocket Anvil',r:'r',x:6,d:'The Wandering Smith reforges twice.'},
+  mirror:{n:'Mirror Charm',r:'r',x:6,d:'Enemies get −10 Hit against your units.'}
 };
 const RC={c:'#9fd8ff',u:'#c58aff',r:'#ffd23f'},RN={c:'Common',u:'Uncommon',r:'Rare'};
 const R=id=>!!(run&&run.relics&&run.relics.includes(id));
 function relicArt(k){const c='R|'+k;if(sprCache[c])return sprCache[c];const p=Px(16,16),col=RC[RELICS[k].r];
   p.line(4,1,8,6,GOLD);p.line(12,1,8,6,GOLD);p.poly([[8,5],[13,9],[8,15],[3,9]],col);p.poly([[8,5],[13,9],[8,9]],shade(col,1.25));p.set(7,8,'#ffffff');p.outline(OUT);return sprCache[c]=p.url()}
-function relicPool(rs){return Object.keys(RELICS).filter(k=>!R(k)&&rs.includes(RELICS[k].r)&&(!RELICS[k].x||unl('relics2')))}
+function relicPool(rs){return Object.keys(RELICS).filter(k=>!R(k)&&rs.includes(RELICS[k].r)&&relicOpen(k))}
 async function relicPick(n,rs,title,text){
   const opts=shuffle(relicPool(rs)).slice(0,n);if(!opts.length)return null;
   const m=await modal(`<div class="eyebrow">Relic</div><h2>${title}</h2><p>${text}</p><div class="inv">${opts.map((k,i)=>`<button type="button" class="it" data-m="r${i}"><img src="${relicArt(k)}" alt=""><span><b>${RELICS[k].n}</b> · ${RELICS[k].d}</span><em>${RN[RELICS[k].r]}</em></button>`).join('')}</div>`);
@@ -2305,7 +2349,7 @@ async function relicPick(n,rs,title,text){
 function relicCalc(x,xw,y){
   const o={pow:0,df:0,acc:0,avo:0,crit:0};if(!run)return o;
   /* early ease: in Act 1, enemies deal 3 less damage on floors 1-3, 2 less on 4-6, 1 less on 7-9 */
-  if(x.team==='e'&&(run.act||1)===1&&(run.n||1)<10)o.pow-=3-Math.floor(((run.n||1)-1)/3);
+  if(x.team==='e'&&!A(3)&&(run.act||1)===1&&(run.n||1)<10)o.pow-=3-Math.floor(((run.n||1)-1)/3);
   if(x.team==='p'){if(M('boar'))o.pow+=2;if(M('bread'))o.acc+=15}if(y.team==='p'&&M('pie'))o.df+=2;
   if(!run.relics)return o;
   if(x.team==='p'){
@@ -2420,6 +2464,7 @@ async function tavernNode(){
   tavEl.innerHTML=`<div class="tv-scene"><img class="tv-bg" src="${tavernArt()}" alt=""><img class="tv-keeper" src="${keeper}" alt="${KEEPER.name}"><img class="tv-counter" src="${counterArt()}" alt=""><span class="tv-gold"></span></div>
     <div class="tv-box"><div class="tv-name">${KEEPER.name}, the innkeeper</div><p class="tv-text"></p><div class="tv-opts"></div></div>`;
   tavEl.hidden=false;music('tavern');
+  tip('tavern','The tavern','Spend the gold you earn from fights. Do as many things as you can afford, then head back out. Food lasts a few fights; drinks are for good.');
   let text=pick(GREET);
   for(;;){
     const m=await tavShow(text,[['drink','Drinks at the bar','Ale, spirits and tea'],['food','Something to eat',`Buffs for a few fights${(run.meals||[]).length?` · ${run.meals.length} active`:''}`],['hire','Anyone looking for work?',`${hires.length} sellsword${hires.length===1?'':'s'} at the tables`],['rumour','Heard any rumours?',''],['leave','Head back out','']]);
@@ -2436,7 +2481,7 @@ async function tavernNode(){
     if(m==='food'){
       const act=(run.meals||[]).map(x=>`${MEALS[x.id].n} (${x.n} fight${x.n>1?'s':''} left)`).join(', ');
       const f=await tavShow(`“Kitchen’s open. It all lasts a few fights, for the whole table.”${act?` Still in your bellies: ${act}.`:''}`,[...Object.entries(MEALS).map(([k,x])=>[k,`<img class="tv-ic" src="${mealArt(k)}" alt="">${x.n} · ${x.p}g`,`${x.d} for ${x.f} fights${M(k)?' (already eaten)':''}`,M(k)||gold()<x.p]),['back','Back','']]);
-      if(f!=='back'){spend(MEALS[f].p);(run.meals=run.meals||[]).push({id:f,n:MEALS[f].f});text=`The ${MEALS[f].n} arrives steaming. ${MEALS[f].d} for the next ${MEALS[f].f} fights.`}
+      if(f!=='back'){spend(MEALS[f].p);run.ate=(run.ate||0)+1;(run.meals=run.meals||[]).push({id:f,n:MEALS[f].f});text=`The ${MEALS[f].n} arrives steaming. ${MEALS[f].d} for the next ${MEALS[f].f} fights.`}
       continue}
     if(m==='hire'){
       if(!hires.length){text='“That’s everyone who wanted work tonight.”';continue}
@@ -2475,6 +2520,7 @@ async function musterScene(opts,need){
       <div class="ms-cards"></div>
       <div class="mbtns"><button type="button" data-g="back">Back</button><button type="button" class="go" data-g="go" disabled>March</button></div></div>`;
   musEl.hidden=false;
+  tip('muster','Choose your squad','Tap 3 travellers to bring them along. Their cards show stats, weapon and skill, and “What do stats do?” explains the numbers. Every Crossroads has at least one Mender to heal. Units who fall are gone for the rest of the run.');
   const draw=()=>{musEl.querySelectorAll('.mu').forEach(b=>b.classList.toggle('on',chosen.includes(+b.dataset.u)));
     const g=musEl.querySelector('[data-g="go"]');g.disabled=chosen.length!==need;g.textContent=`March (${chosen.length}/${need})`;
     musEl.querySelector('.ms-count').textContent=chosen.length===need?'Your squad is ready.':`Tap ${need-chosen.length===need?need:need-chosen.length} more traveller${need-chosen.length===1?'':'s'} to bring along.`;
@@ -2488,6 +2534,42 @@ async function musterScene(opts,need){
     res(g.dataset.g==='go'?chosen.map(i=>opts[i]):null)}});
 }
 
+
+/* ---- gear: non-weapon items that work while carried (one of each kind counts), and can be traded ---- */
+Object.assign(IT,{
+  leather:{n:'Leather Armour',t:'gear',kind:'armor',uses:1,gear:{def:2},key:'leather'},
+  chain:{n:'Chainmail',t:'gear',kind:'armor',uses:1,gear:{def:4,spd:-1},tint:'steel',key:'chain'},
+  cloak:{n:'Warding Cloak',t:'gear',kind:'cloak',uses:1,gear:{res:3},key:'cloak'},
+  boots:{n:'Traveller’s Boots',t:'gear',kind:'boots',uses:1,gear:{mov:1},key:'boots'},
+  gauntlet:{n:'Iron Gauntlets',t:'gear',kind:'gauntlet',uses:1,gear:{str:2},key:'gauntlet'}
+});
+const GEAR_N={def:'Def',res:'Res',spd:'Spd',mov:'Move',str:'Str'};
+function gearOf(u){const g={def:0,res:0,spd:0,mov:0,str:0},seen=new Set();
+  for(const it of u.items||[]){const x=IT[it.k];if(!x||x.t!=='gear'||seen.has(it.k))continue;seen.add(it.k);for(const s in x.gear)g[s]+=x.gear[s]}return g}
+const gearText=x=>Object.entries(x.gear).map(([s,v])=>`${v>0?'+':''}${v} ${GEAR_N[s]}`).join(', ');
+const tradable=k=>!WTYPES.includes(IT[k].t)&&IT[k].t!=='spirit';
+const tradeMates=u=>state.units.filter(o=>o!==u&&o.team==='p'&&o.hp>0&&man(o,u)===1);
+/* trading: tap one of your items to hand it over, or one of theirs to take it. Doesn't use up the action. */
+async function tradeWith(u){
+  let mates=tradeMates(u),o=mates[0];
+  for(;;){
+    const col=(a,b,tag)=>`<div class="tcol"><div class="ch"><b>${a.name}</b><span>${a.items.length}/5</span></div><div class="inv">${a.items.map((it,i)=>{const x=IT[it.k],ok=tradable(it.k)&&b.items.length<5;
+      return`<button type="button" class="it" data-m="${ok?tag+i:'no'}"${ok?'':' aria-disabled="true"'}><img src="${icon(it.k)}" alt="">${x.n}${tradable(it.k)?'':' <em>weapon</em>'}<span class="u">${x.t==='gear'?gearText(x):it.u+'/'+x.uses}</span></button>`}).join('')||'<p class="skd">No items.</p>'}</div></div>`;
+    const m=await modal(`<div class="eyebrow">Trade</div><h2>${u.name} and ${o.name}</h2><p>Tap an item to pass it across. Salves, scrolls and gear can be traded; weapons can’t.</p>
+      ${mates.length>1?`<div class="mbtns">${mates.map((x,i)=>`<button type="button" data-m="w${i}"${x===o?' class="go"':''}>${x.name}</button>`).join('')}</div>`:''}
+      <div class="trade">${col(u,o,'g')}${col(o,u,'t')}</div><div class="mbtns"><button class="go" type="button" data-m="done">Done</button></div>`);
+    if(m==='done')return;if(m==='no')continue;
+    if(m[0]==='w'){o=mates[+m.slice(1)];continue}
+    const[from,to]=m[0]==='g'?[u,o]:[o,u],it=from.items.splice(+m.slice(1),1)[0];to.items.push(it);sfx('item');
+  }
+}
+function gearArt(p,kd,c){
+  if(kd==='armor'){p.poly([[3,3],[6,2],[10,2],[13,3],[13,13],[8,15],[3,13]],c.tint==='steel'?'#b3d0f0':'#8a5a32');p.rect(7,3,2,11,c.tint==='steel'?'#7f889b':'#5a3a22');p.rect(3,6,10,1,c.tint==='steel'?'#7f889b':'#6a4428')}
+  if(kd==='cloak'){p.poly([[5,2],[11,2],[14,15],[2,15]],'#4a5a8a');p.poly([[5,2],[8,2],[6,15],[2,15]],'#3a4870');p.ell(8,3,2,1.5,GOLD)}
+  if(kd==='boots'){p.rect(3,4,4,8,'#7a5230');p.rect(3,11,7,3,'#7a5230');p.rect(9,4,4,8,'#8a6040');p.rect(9,11,6,3,'#8a6040');p.rect(3,4,4,1,GOLD);p.rect(9,4,4,1,GOLD)}
+  if(kd==='gauntlet'){p.rect(4,6,8,8,'#9aa3b5');p.rect(4,3,2,4,'#9aa3b5');p.rect(7,2,2,5,'#9aa3b5');p.rect(10,3,2,4,'#9aa3b5');p.rect(4,12,8,2,'#6a7385')}
+}
+
 /* ---- flow ---- */
 async function beginBattle(){
   run.fights=(run.fights||0)+1;const def=genBattle(run.fights,run.kind);CH.length=0;CH.push(def);
@@ -2495,8 +2577,9 @@ async function beginBattle(){
 }
 async function newRun(){
   const seed=(Date.now()^Math.floor(Math.random()*1e9))>>>0;seedRng(seed);
-  run={seed,n:0,uid:1,roster:[],pos:null,path:[],act:1,relics:[],ess:0,rr:{},gold:30,meals:[]};run.biomes=shuffle(Object.keys(BIOMES)).slice(0,ACTS);
+  run={seed,n:0,uid:1,roster:[],pos:null,path:[],act:1,relics:[],rr:{},gold:30,meals:[],lost:0,ate:0};run.biomes=shuffle(Object.keys(BIOMES)).slice(0,ACTS);
   const opts=Array.from({length:unl('draft6')?6:5},(_,i)=>genUnit(unl('veterans')?2:1,i===0?'support':undefined));shuffle(opts);
+  const asc=await ascPick();if(asc===null)return false;run.asc=asc;if(A(3))run.gold=0;
   titleEl.hidden=true;const squad=await musterScene(opts,3);if(!squad)return false;
   run.roster=squad;
   if(unl('startRelic'))await relicPick(2,['c','u'],'An heirloom','Choose a relic to carry from the start.');
@@ -2507,10 +2590,11 @@ async function titleScreen(){
   for(;;){
     const sv=loadGame(),items=[];
     if(sv&&sv.run)items.push(['cont','Continue']);
-    items.push(['new','New March'],['camp',`Camp · ${prof.essence} Essence`],['opts','Options']);
+    items.push(['new','New March'],['records',`Records · ${prof.ach.length}/${ACH.length}`],['hist','Run History <span class="devtag">In development</span>'],['opts','Options']);
     const m=await titleMenu(items);
     if(m==='opts'){await optionsMenu(true);continue}
-    if(m==='camp'){await campScreen();continue}
+    if(m==='records'){await recordsScreen();continue}
+    if(m==='hist'){await modal(`<div class="eyebrow">In development</div><h2>Run History</h2><p>A log of your past runs is coming: who marched, which relics and items you carried, and where each unit fell.</p><p>Your runs are already being recorded, so they’ll be here when it’s ready (${(prof.hist||[]).length} so far).</p><div class="mbtns"><button class="go" type="button" data-m="ok">Back</button></div>`);continue}
     if(m==='cont'){titleEl.hidden=true;restore(sv);if(run.phase==='map')mapStep();else banner('Player Phase','p');return}
     if(await newRun())return;
   }
@@ -2519,13 +2603,14 @@ async function winScreen(){
   await sleep(600);
   const survivors=state.units.filter(u=>u.team==='p'),fallen=chStart.units.filter(s=>s.team==='p'&&!survivors.some(u=>u.id===s.id));
   run.roster=survivors.map(u=>{const r=clone(u);r.hp=r.maxhp;r.acted=false;r.stone=0;return r});
-  const bossWin=run.kind==='boss',final=bossWin&&(run.act||1)>=ACTS,gain=bossWin?20:run.kind==='elite'?8:4,rw=battleRewards();
-  run.ess=(run.ess||0)+gain+(final?20:0);const gg=GOLDWIN[run.kind]||GOLDWIN.battle;run.gold=gold()+gg;afterFightMeals();
+  const bossWin=run.kind==='boss',final=bossWin&&(run.act||1)>=ACTS,rw=battleRewards();
+  run.lost=(run.lost||0)+fallen.length;(run.fallen=run.fallen||[]).push(...fallen.map(u=>({n:u.name,c:CLS[u.cls].n,act:run.act||1,floor:run.n})));if(bossWin&&!prof.bosses.includes(actBiome().id)){prof.bosses.push(actBiome().id);saveProf()}
+  const gg=GOLDWIN[run.kind]||GOLDWIN.battle;run.gold=gold()+gg;afterFightMeals();
   const ro=survivors.map(u=>`<div><img src="${portrait(u)}" alt="">${u.name}<span class="hint">Lv ${u.lv}</span></div>`).join('')+fallen.map(u=>`<div class="dead"><img src="${portrait(u)}" alt="">${u.name}<span class="hint">Fallen</span></div>`).join('');
-  await modal(`<div class="eyebrow">Act ${run.act||1} · Floor ${run.n} of ${RUN_LEN} won · Turn ${state.turn}</div><h2>${CH[0].title}</h2><p>${final?'The march is complete.':bossWin?`The ${actBiome().n} is cleared. The road leads on to the ${BIOMES[run.biomes[run.act]].n}.`:'Survivors heal fully before the next room.'}</p><div class="roster">${ro}</div><p>${rw.length?`Found: ${rw.join(', ')}. `:''}<span class="ess">+${gain+(final?20:0)} Essence</span> · <span class="gold">+${gg} gold</span></p><div class="mbtns"><button class="go" type="button" data-m="next">${final?'Finish':'March on'}</button></div>`);
+  await modal(`<div class="eyebrow">Act ${run.act||1} · Floor ${run.n} of ${RUN_LEN} won · Turn ${state.turn}</div><h2>${CH[0].title}</h2><p>${final?'The march is complete.':bossWin?`The ${actBiome().n} is cleared. The road leads on to the ${BIOMES[run.biomes[run.act]].n}.`:'Survivors heal fully before the next room.'}</p><div class="roster">${ro}</div><p>${rw.length?`Found: ${rw.join(', ')}. `:''}<span class="gold">+${gg} gold</span></p><div class="mbtns"><button class="go" type="button" data-m="next">${final?'Finish':'March on'}</button></div>`);
   if(run.kind==='elite')await relicPick(2,['c','u'],'The elite’s spoils','Take one relic. It lasts for the rest of the run.');
   if(bossWin&&!final)await relicPick(3,['u','r'],'The boss’s hoard','Take one relic. It lasts for the rest of the run.');
-  if(final){const got=bankEssence(true);await modal(`<div class="eyebrow">Victory · Seed ${run.seed}</div><h2>The march is complete</h2><p>${run.roster.length} of your squad made it to the end. <span class="ess">${got} Essence</span> banked for the Camp.</p><div class="roster">${run.roster.map(u=>`<div><img src="${portrait(u)}" alt="">${u.name}<span class="hint">${CLS[u.cls].n}</span></div>`).join('')}</div><div class="mbtns"><button class="go" type="button" data-m="ok">Back to title</button></div>`);
+  if(final){const news=endRun(true);await modal(`<div class="eyebrow">Victory · Seed ${run.seed}${run.asc?` · Ascension ${run.asc}`:''}</div><h2>The march is complete</h2><p>${run.roster.length} of your squad made it to the end.</p>${newsHTML(news)}<div class="roster">${run.roster.map(u=>`<div><img src="${portrait(u)}" alt="">${u.name}<span class="hint">${CLS[u.cls].n}</span></div>`).join('')}</div><div class="mbtns"><button class="go" type="button" data-m="ok">Back to title</button></div>`);
     try{localStorage.removeItem(SAVE)}catch(_){}run=null;titleScreen();return}
   if(bossWin){run.act=(run.act||1)+1;run.map=genMap();run.pos=null;run.path=[];const B=actBiome();
     await modal(`<div class="eyebrow">Act ${run.act}</div><h2>${B.n}</h2><p>${B.d}</p><div class="mbtns"><button class="go" type="button" data-m="ok">March on</button></div>`)}
@@ -2533,9 +2618,10 @@ async function winScreen(){
 }
 async function loseScreen(){
   await sleep(500);const can=settings.rewind&&rewinds>0&&history.length;
-  const m=await modal(`<div class="eyebrow">Defeat</div><h2>The march ends</h2><p>Your squad fell in Act ${run.act||1}, floor ${run.n} of ${RUN_LEN}. Seed ${run.seed}. Half your Essence is kept: <span class="ess">${Math.floor((run.ess||0)/2)}</span>.</p>${can?`<p>You have ${rewinds} rewind${rewinds>1?'s':''} left.</p>`:''}<div class="mbtns">${can?'<button class="go" type="button" data-m="rewind">Rewind</button>':''}<button type="button" data-m="title">Back to title</button></div>`);
+  const m=await modal(`<div class="eyebrow">Defeat</div><h2>The march ends</h2><p>Your squad fell in Act ${run.act||1}, floor ${run.n} of ${RUN_LEN}. Seed ${run.seed}.</p>${can?`<p>You have ${rewinds} rewind${rewinds>1?'s':''} left.</p>`:''}<div class="mbtns">${can?'<button class="go" type="button" data-m="rewind">Rewind</button>':''}<button type="button" data-m="title">Back to title</button></div>`);
   if(m==='rewind'){rewind();return}
-  bankEssence(false);try{localStorage.removeItem(SAVE)}catch(_){}run=null;titleScreen();
+  const news=endRun(false);if(news.length)await modal(`<h2>Progress</h2>${newsHTML(news)}<div class="mbtns"><button class="go" type="button" data-m="ok">Back to title</button></div>`);
+  try{localStorage.removeItem(SAVE)}catch(_){}run=null;titleScreen();
 }
 function rewind(){if(!settings.rewind||rewinds<=0||!history.length||busy)return;if(ui!=='idle')cancelMove();state=history.pop();rewinds--;over=null;phase='player';clearSel();ui='idle';render();saveGame()}
 function restore(d){
