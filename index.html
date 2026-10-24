@@ -410,6 +410,15 @@ button.it.sel{border-color:var(--gold)}
 .nd.pick{border-color:var(--gold);background:color-mix(in srgb,var(--gold) 25%,var(--panel2))}
 .nm-relics{display:flex;gap:4px;flex-wrap:wrap}.rl.ml{position:relative}.rl.ml i{position:absolute;right:1px;bottom:0;font:700 10px var(--body);font-style:normal;color:var(--gold)}
 .gold{color:#f0c850;font-weight:700}
+.nd.n-start{border-color:#c98a4a;opacity:1}
+.mu{position:absolute;bottom:4%;width:13%;transform:translateX(-50%);background:none;border:0;padding:0;display:flex;flex-direction:column;align-items:center;gap:2px;cursor:pointer;transition:transform .15s}
+.tv-scene .mu img{position:static;width:100%;image-rendering:pixelated;filter:drop-shadow(0 2px 0 rgba(0,0,0,.45))}.mu img.fl{transform:scaleX(-1)}
+.mu span{font-size:12px;font-weight:700;color:#f3e6d0;background:rgba(20,12,8,.75);border-radius:4px;padding:1px 6px;white-space:nowrap}
+.mu:hover{transform:translateX(-50%) translateY(-3px)}
+.mu.on{transform:translateX(-50%) translateY(-6px)}.mu.on img{filter:drop-shadow(0 0 3px #f0c850) drop-shadow(0 0 6px #f0c850)}.mu.on span{background:#f0c850;color:#1a1408}
+.ms-sign{position:absolute;font-size:clamp(6px,1.3vw,11px);font-weight:700;color:#2a1a10;white-space:nowrap;transform:translateX(-50%)}
+.ms-sign.a{left:84%;top:54%}.ms-sign.b{left:86%;top:62.5%}
+.ms-card:empty{display:none}.ms-card .dcard{cursor:default}
 .tav{position:fixed;inset:0;z-index:57;display:flex;flex-direction:column;align-items:center;gap:10px;overflow:auto;background:#140d0a;padding-block:max(12px,env(safe-area-inset-top,0px)) max(12px,env(safe-area-inset-bottom,0px));padding-left:max(12px,env(safe-area-inset-left,0px));padding-right:max(12px,env(safe-area-inset-right,0px))}
 .tv-scene{box-sizing:border-box;position:relative;width:min(100%,760px);aspect-ratio:16/9;flex:none;border:2px solid #5a3a22;border-radius:8px;overflow:hidden}
 .tv-scene img{position:absolute;image-rendering:pixelated}
@@ -2032,17 +2041,6 @@ function unitCard(u,on){
   <span class="dst">${S.map(k=>`${SL[k]} <b>${k==='hp'?u.maxhp:u[k]}</b>`).join(' ')}</span>
   <span class="dsk">${SKILLS[u.skill].n} · ${w.map(i=>`<img src="${icon(i.key)}" alt="">${i.n}`).join(' ')}</span></div>${on?'<span class="dtick">✓</span>':''}`;
 }
-async function draftPick(opts,need){
-  const chosen=new Set();
-  for(;;){
-    const m=await modal(`<div class="eyebrow">New march · Seed ${run.seed}</div><h2>Choose your squad</h2><p>Pick ${need} of these ${opts.length}. Fallen units are gone for the rest of the run.</p>
-      <div class="draft">${opts.map((u,i)=>`<button type="button" class="dcard${chosen.has(i)?' on':''}" data-m="p${i}">${unitCard(u,chosen.has(i))}</button>`).join('')}</div>
-      <div class="mbtns"><button type="button" data-m="back">Back</button><button class="go" type="button" data-m="go"${chosen.size===need?'':' disabled'}>March (${chosen.size}/${need})</button></div>`);
-    if(m==='back')return null;
-    if(m==='go'&&chosen.size===need)return opts.filter((_,i)=>chosen.has(i));
-    if(m.startsWith('p')){const i=+m.slice(1);if(chosen.has(i))chosen.delete(i);else if(chosen.size<need)chosen.add(i);sfx('tick')}
-  }
-}
 const canReroll=()=>unl('reroll')&&!(run.rr=run.rr||{})[run.act||1];
 async function recruitNode(){
   const lv=Math.max(1,Math.round(run.roster.reduce((a,u)=>a+u.lv,0)/run.roster.length))+(R('lantern')?1:0),mk=()=>Array.from({length:R('lantern')?4:3},()=>genUnit(lv));
@@ -2119,12 +2117,14 @@ function bossIcon(){const B=actBiome(),k='boss:'+B.id;if(NODE_IC[k])return NODE_
 function reachable(){const M=run.map.rows;if(!run.pos)return M[0].map((_,i)=>({r:0,i}));const n=M[run.pos.r][run.pos.i];return run.pos.r+1<M.length?n.next.map(i=>({r:run.pos.r+1,i})):[]}
 const mapEl=document.createElement('div');mapEl.className='nmap';mapEl.hidden=true;document.body.appendChild(mapEl);
 function mapScreen(){
-  const M=run.map.rows,RH=74,H=M.length*RH+20,ok=reachable(),isOk=(r,i)=>ok.some(o=>o.r===r&&o.i===i);
-  const Y=r=>H-30-r*RH,vis=new Set((run.path||[]).map(p=>p.r+','+p.i));
+  const M=run.map.rows,RH=74,H=(M.length+1)*RH+20,ok=reachable(),isOk=(r,i)=>ok.some(o=>o.r===r&&o.i===i);
+  const Y=r=>H-36-(r+1)*RH,vis=new Set((run.path||[]).map(p=>p.r+','+p.i));
   let lines='';M.forEach((row,r)=>row.forEach((n,i)=>n.next.forEach(j=>{const m=M[r+1]&&M[r+1][j];if(!m)return;const walked=vis.has(r+','+i)&&vis.has((r+1)+','+j);
     lines+=`<line x1="${n.x}" y1="${Y(r)}" x2="${m.x}" y2="${Y(r+1)}" stroke="${walked?'#d8b15a':'#5a5466'}" stroke-width="${walked?2.5:1.5}" stroke-dasharray="${walked?'':'3 4'}" vector-effect="non-scaling-stroke"/>`})));
+  M[0].forEach((n,i)=>{const walked=vis.has('0,'+i);lines+=`<line x1="50" y1="${Y(-1)}" x2="${n.x}" y2="${Y(0)}" stroke="${walked?'#d8b15a':'#5a5466'}" stroke-width="${walked?2.5:1.5}" stroke-dasharray="${walked?'':'3 4'}" vector-effect="non-scaling-stroke"/>`});
   const nodes=M.map((row,r)=>row.map((n,i)=>{const cur=run.pos&&run.pos.r===r&&run.pos.i===i,c=['nd','n-'+n.t,isOk(r,i)?'ok':'',vis.has(r+','+i)?'vis':'',cur?'cur':''].join(' ');
-    return`<button type="button" class="${c}" style="left:${n.x}%;top:${Y(r)}px" data-n="${r},${i}" ${isOk(r,i)?'':'tabindex="-1"'} aria-label="${NODE_N[n.t]}"><img src="${nodeIcon(n.t)}" alt=""></button>`}).join('')).join('');
+    return`<button type="button" class="${c}" style="left:${n.x}%;top:${Y(r)}px" data-n="${r},${i}" ${isOk(r,i)?'':'tabindex="-1"'} aria-label="${NODE_N[n.t]}"><img src="${nodeIcon(n.t)}" alt=""></button>`}).join('')).join('')
+    +`<button type="button" class="nd n-start ${run.pos?'vis':'cur'}" style="left:50%;top:${Y(-1)}px" data-start="1" aria-label="Start"><img src="${flagArt()}" alt=""></button>`;
   mapEl.innerHTML=`<div class="nm-head"><div class="eyebrow">Act ${run.act||1} of ${ACTS} · Seed ${run.seed} · <span class="ess">${run.ess||0} Essence</span> · <span class="gold">${gold()} gold</span></div><h2>${actBiome().n}</h2></div>
     <div class="nm-scroll"><div class="nm-board" style="height:${H}px"><svg viewBox="0 0 100 ${H}" preserveAspectRatio="none" width="100%" height="${H}">${lines}</svg>${nodes}</div></div>
     ${(run.relics||[]).length||(run.meals||[]).length?`<div class="nm-relics">${(run.relics||[]).map(k=>`<button type="button" class="rl" data-rel="${k}" aria-label="${RELICS[k].n}"><img src="${relicArt(k)}" alt=""></button>`).join('')}${(run.meals||[]).map(x=>`<button type="button" class="rl ml" data-meal="${x.id}" aria-label="${MEALS[x.id].n}"><img src="${mealArt(x.id)}" alt=""><i>${x.n}</i></button>`).join('')}</div>`:''}
@@ -2139,6 +2139,7 @@ function mapScreen(){
       if(sel===b.dataset.n){mapEl.onclick=null;sfx('select');return res({r,i})}
       sel=b.dataset.n;mapEl.querySelectorAll('.nd.pick').forEach(x=>x.classList.remove('pick'));b.classList.add('pick');sfx('tick');
       mapEl.querySelector('.nm-info').innerHTML=`<b>${NODE_N[t]}.</b> ${NODE_D[t]} Tap again to go.`;return}
+    const st=e.target.closest('[data-start]');if(st){mapEl.querySelector('.nm-info').innerHTML=(run.act||1)===1?'<b>The Crossroads.</b> Where the march began.':`<b>The road in.</b> Where you entered the ${actBiome().n}.`;return}
     const any=e.target.closest('.nd');if(any){const[r,i]=any.dataset.n.split(',').map(Number),t=M[r][i].t;mapEl.querySelector('.nm-info').innerHTML=`<b>${NODE_N[t]}.</b> ${NODE_D[t]}`}
   }});
 }
@@ -2429,6 +2430,41 @@ async function tavernNode(){
   }
 }
 
+
+/* ---- the muster: the run's opening scene at the crossroads, where you pick your starting squad ---- */
+function musterArt(){const c='MUS';if(sprCache[c])return sprCache[c];const W=160,H=90,p=Px(W,H);
+  ['#2a2a4a','#3a3456','#5a4060','#8a5060','#c87058','#e8a060'].forEach((col,i)=>p.rect(0,i*8,W,8,col));p.ell(40,46,9,9,'#ffd27a');p.ell(40,46,6,6,'#fff0c0');
+  p.poly([[0,52],[18,34],[34,46],[52,30],[74,48],[96,32],[118,46],[140,28],[160,42],[160,60],[0,60]],'#3a2e48');
+  p.poly([[0,58],[24,46],[50,56],[80,44],[110,56],[136,46],[160,54],[160,64],[0,64]],'#2a2436');
+  p.rect(0,60,W,30,'#3e4a2e');for(let i=0;i<60;i++)p.set((i*37)%W,62+(i*13)%28,i%2?'#4e5a3a':'#34402a');
+  p.poly([[66,90],[94,90],[86,60],[74,60]],'#6a5a3e');p.poly([[74,60],[86,60],[83,52],[77,52]],'#5a4a34');
+  p.rect(137,46,2,24,'#5a3a22');p.poly([[124,48],[148,48],[152,51],[148,54],[124,54]],'#8a6040');p.poly([[150,56],[128,56],[124,59],[128,62],[150,62]],'#8a6040');
+  p.line(80,74,72,80,'#5a3a22',2);p.line(72,74,88,80,'#4a2e1a',2);p.poly([[80,62],[85,72],[80,75],[75,72]],'#ff8a3c');p.poly([[80,66],[82,72],[80,74],[78,72]],'#ffe14a');
+  p.rect(18,66,10,7,'#7a5a3a');p.rect(16,64,14,3,'#5a3a22');p.rect(112,70,12,6,'#5a4a3a');
+  return sprCache[c]=p.url()}
+function flagArt(){const c='FLAG';if(sprCache[c])return sprCache[c];const p=Px(16,16);p.rect(4,1,1,14,'#8a6040');p.poly([[5,2],[14,4],[5,8]],'#d8483a');p.line(5,3,11,4,'#f0c850');p.rect(2,14,5,1,'#5a3a22');p.outline(OUT);return sprCache[c]=p.url()}
+const musEl=document.createElement('div');musEl.className='tav mus';musEl.hidden=true;document.body.appendChild(musEl);
+async function musterScene(opts,need){
+  const chosen=new Set(),B1=BIOMES[run.biomes[0]],B2=BIOMES[run.biomes[1]],n=opts.length;let focus=null;
+  const pos=i=>10+i*80/(n-1);
+  musEl.innerHTML=`<div class="tv-scene"><img class="tv-bg" src="${musterArt()}" alt="">
+      <span class="ms-sign a">${B1.n}</span><span class="ms-sign b">${B2.n}</span>
+      ${opts.map((u,i)=>`<button type="button" class="mu" data-u="${i}" style="left:${pos(i)}%" aria-label="${u.name}"><img src="${uSpr(u)}" alt=""${pos(i)>50?' class="fl"':''}><span>${u.name}</span></button>`).join('')}
+      <span class="tv-gold">Seed ${run.seed}</span></div>
+    <div class="tv-box"><div class="tv-name">The Crossroads</div>
+      <p class="tv-text">Dawn breaks over the crossroads. ${n} travellers answered your call, but the road only has room for ${need}. Beyond lies the <b>${B1.n}</b>, and after it the <b>${B2.n}</b>. Tap a traveller to meet them.</p>
+      <div class="ms-card"></div>
+      <div class="mbtns"><button type="button" data-g="back">Back</button><button type="button" class="go" data-g="go" disabled>March (0/${need})</button></div></div>`;
+  musEl.hidden=false;
+  const draw=()=>{musEl.querySelectorAll('.mu').forEach(b=>b.classList.toggle('on',chosen.has(+b.dataset.u)));
+    const g=musEl.querySelector('[data-g="go"]');g.disabled=chosen.size!==need;g.textContent=`March (${chosen.size}/${need})`;
+    musEl.querySelector('.ms-card').innerHTML=focus==null?'':`<div class="dcard${chosen.has(focus)?' on':''}">${unitCard(opts[focus],chosen.has(focus))}</div>`};
+  return new Promise(res=>{musEl.onclick=e=>{
+    const u=e.target.closest('[data-u]');if(u){const i=+u.dataset.u;focus=i;if(chosen.has(i))chosen.delete(i);else if(chosen.size<need)chosen.add(i);else{toast(`Only ${need} can march. Tap a chosen traveller to swap.`)}sfx('tick');draw();return}
+    const g=e.target.closest('[data-g]');if(!g||g.disabled)return;musEl.onclick=null;musEl.hidden=true;sfx('select');
+    res(g.dataset.g==='go'?opts.filter((_,i)=>chosen.has(i)):null)}});
+}
+
 /* ---- flow ---- */
 async function beginBattle(){
   run.fights=(run.fights||0)+1;const def=genBattle(run.fights,run.kind);CH.length=0;CH.push(def);
@@ -2438,8 +2474,8 @@ async function newRun(){
   const seed=(Date.now()^Math.floor(Math.random()*1e9))>>>0;seedRng(seed);
   run={seed,n:0,uid:1,roster:[],pos:null,path:[],act:1,relics:[],ess:0,rr:{},gold:30,meals:[]};run.biomes=shuffle(Object.keys(BIOMES)).slice(0,ACTS);
   const opts=Array.from({length:unl('draft6')?6:5},()=>genUnit(unl('veterans')?2:1));
-  const squad=await draftPick(opts,3);if(!squad)return false;
-  run.roster=squad;titleEl.hidden=true;
+  titleEl.hidden=true;const squad=await musterScene(opts,3);if(!squad)return false;
+  run.roster=squad;
   if(unl('startRelic'))await relicPick(2,['c','u'],'An heirloom','Choose a relic to carry from the start.');
   run.map=genMap();await mapStep();return true;
 }

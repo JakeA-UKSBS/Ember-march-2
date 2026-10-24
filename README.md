@@ -22,7 +22,7 @@ Each run picks 2 of these as its acts (`BIOMES`, `ACTS`). Each has 2-3 battle ma
 
 
 ## A run
-- Pick 3 of 5 generated units. Fallen units are gone for the rest of the run; you only lose when the whole squad falls.
+- A run opens at the Crossroads (`musterScene()`): your candidates stand around a campfire, with the run's two regions on the signpost. Tap travellers to see their card and choose 3, then march. Each act's map starts from a flag node at the bottom. Fallen units are gone for the rest of the run; you only lose when the whole squad falls.
 - Each act is a branching node map (`genMap()`): 9 floors of 3 lanes, then the boss on floor 10.
 - Every path holds exactly `MIX`: 3 battles, 1 elite (never before floor 4; shown as a red horned skull on the map), 1 recruit, 1 tavern, 1 rest, 1 event, 1 treasure. Lanes are shuffles of the same mix, and a crossing between lanes is only kept if every path through the map still matches, so no route skips the treasure room. Change `MIX` to change the length and mix.
 - Nodes: Battle; Elite (Elder leader, drops an Ascension Fragment); Recruit (pick 1 of 3; team caps at 6, `TEAM_CAP`); Rest (train one unit +1 level); Treasure (pick 1 of 3 items); Event (`EVENTS`); Tavern; Boss.
