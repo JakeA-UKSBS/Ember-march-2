@@ -6,7 +6,7 @@ A run-based tactics roguelike in the style of GBA Fire Emblem. Built for PC firs
 Open `index.html` in a browser. On PC: Esc or right-click backs out of a move or menu, E ends the turn, the mouse wheel zooms.
 
 ## Music
-Drop mp3 files into a `music/` folder next to `index.html`: `title.mp3`, `mushroom.mp3`, `shadow.mp3`, `swamp.mp3`, `forest.mp3`, `mountain.mp3`, `ship.mp3`, `labyrinth.mp3`. Each loops while you're in that region (map and battles). Missing files are skipped. "Sound and music" in Options turns it off.
+Drop mp3 files into a `music/` folder next to `index.html`: `title.mp3`, `tavern.mp3`, `mushroom.mp3`, `shadow.mp3`, `swamp.mp3`, `forest.mp3`, `mountain.mp3`, `ship.mp3`, `labyrinth.mp3`. Each loops while you're in that region (map and battles). Missing files are skipped. "Sound and music" in Options turns it off.
 
 ## Regions
 Each run picks 2 of these as its acts (`BIOMES`, `ACTS`). Each has 2-3 battle maps, a boss map, a monster pool and a rule.
@@ -24,8 +24,10 @@ Each run picks 2 of these as its acts (`BIOMES`, `ACTS`). Each has 2-3 battle ma
 ## A run
 - Pick 3 of 5 generated units. Fallen units are gone for the rest of the run; you only lose when the whole squad falls.
 - Each act is a branching node map (`genMap()`): 9 floors of 3 lanes, then the boss on floor 10.
-- Every path holds exactly `MIX`: 4 combats (some floor 5+ battles become elites), 2 recruits, 1 rest, 1 event, 1 treasure. Lanes are shuffles of the same mix, and a crossing between lanes is only kept if every path through the map still matches, so no route skips the treasure room. Change `MIX` to change the length and mix.
-- Nodes: Battle; Elite (Elder leader, drops an Ascension Fragment); Recruit (pick 1 of 3; team caps at 6, `TEAM_CAP`); Rest (train one unit +1 level); Treasure (pick 1 of 3 items); Event (`EVENTS`); Boss.
+- Every path holds exactly `MIX`: 4 combats (some floor 5+ battles become elites), 1 recruit, 1 tavern, 1 rest, 1 event, 1 treasure. Lanes are shuffles of the same mix, and a crossing between lanes is only kept if every path through the map still matches, so no route skips the treasure room. Change `MIX` to change the length and mix.
+- Nodes: Battle; Elite (Elder leader, drops an Ascension Fragment); Recruit (pick 1 of 3; team caps at 6, `TEAM_CAP`); Rest (train one unit +1 level); Treasure (pick 1 of 3 items); Event (`EVENTS`); Tavern; Boss.
+- Gold: 30 to start, then 25 per battle, 45 per elite, 80 per boss (`GOLDWIN`). Spent at taverns.
+- Tavern (`tavernNode()`): talk to Marla the innkeeper and pick as many options as you can afford before leaving. Drinks (`DRINKS`): a round of ale (+30 EXP for everyone) or a spirit for one unit (+1 to a stat for good). Food (`MEALS`): squad-wide buffs for 2-3 fights (+2 damage, +15 Hit, +2 Def/Res, +1 Move, poison immunity), counted down after each won fight and shown on the map. Sellswords: 3 units for hire at 40 + 15 per level. Rumours: a hint about the region's boss and rule. Music slot: `music/tavern.mp3`.
 - Events: the Wandering Smith (reforge a weapon +1, up to +3), Abandoned Armoury (a steel weapon, or 2 Salves), Shrine of Trial (3 max HP for a random skill), Training Ground (everyone +50 EXP).
 - Forged weapons use keys like `ironAxe~2` (+2 Mt and +5 Hit per level; charms heal +5), built on demand by `ensureIt()`.
 - Enemy strength follows how many fights you've had (`run.fights`), not the floor.

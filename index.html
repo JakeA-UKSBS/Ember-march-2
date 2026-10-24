@@ -401,13 +401,30 @@ button.it.sel{border-color:var(--gold)}
 .nd{position:absolute;width:44px;height:44px;margin:-22px 0 0 -22px;border-radius:50%;padding:0;display:grid;place-items:center;background:var(--panel2);border:2px solid var(--line);opacity:.55}
 .nd img{width:28px;height:28px;image-rendering:pixelated}
 .nd.n-boss{width:60px;height:60px;margin:-30px 0 0 -30px;border-color:#a8483a}.nd.n-boss img{width:44px;height:44px}
-.nd.n-elite{border-color:#a8483a}.nd.n-rest{border-color:#c98a3a}.nd.n-recruit{border-color:var(--blue)}.nd.n-treasure{border-color:var(--gold)}.nd.n-event{border-color:#8a6ab0}
+.nd.n-elite{border-color:#a8483a}.nd.n-rest{border-color:#c98a3a}.nd.n-recruit{border-color:var(--blue)}.nd.n-treasure{border-color:var(--gold)}.nd.n-tavern{border-color:#c98a4a}.nd.n-event{border-color:#8a6ab0}
 .dcard[disabled]{opacity:.45}.dno{position:absolute;right:8px;bottom:6px;font-size:11px;color:var(--red)}
 .nd.vis{opacity:.85;background:#2a2620}
 .nd.cur{opacity:1;box-shadow:0 0 0 3px var(--gold)}
 .nd.ok{opacity:1;animation:pulse 1.2s infinite}
 .nd.pick{border-color:var(--gold);background:color-mix(in srgb,var(--gold) 25%,var(--panel2))}
-.nm-relics{display:flex;gap:4px;flex-wrap:wrap}.rl{width:32px;height:32px;padding:0;display:grid;place-items:center}.rl img{width:22px;height:22px;image-rendering:pixelated}
+.nm-relics{display:flex;gap:4px;flex-wrap:wrap}.rl.ml{position:relative}.rl.ml i{position:absolute;right:1px;bottom:0;font:700 10px var(--body);font-style:normal;color:var(--gold)}
+.gold{color:#f0c850;font-weight:700}
+.tav{position:fixed;inset:0;z-index:57;display:flex;flex-direction:column;align-items:center;gap:10px;overflow:auto;background:#140d0a;padding-block:max(12px,env(safe-area-inset-top,0px)) max(12px,env(safe-area-inset-bottom,0px));padding-left:max(12px,env(safe-area-inset-left,0px));padding-right:max(12px,env(safe-area-inset-right,0px))}
+.tv-scene{box-sizing:border-box;position:relative;width:min(100%,760px);aspect-ratio:16/9;flex:none;border:2px solid #5a3a22;border-radius:8px;overflow:hidden}
+.tv-scene img{position:absolute;image-rendering:pixelated}
+.tv-bg{inset:0;width:100%;height:100%}
+.tv-keeper{left:50%;bottom:20%;height:58%;transform:translateX(-50%) scaleX(-1)}
+.tv-counter{left:0;bottom:0;width:100%;height:37.8%}
+.tv-gold{position:absolute;right:10px;top:8px;background:rgba(20,12,8,.8);border:1px solid #c98a4a;border-radius:6px;padding:3px 10px;color:#f0c850;font-weight:700;font-size:14px}
+.tv-box{box-sizing:border-box;width:min(100%,760px);background:#221612;border:2px solid #7a5230;border-radius:8px;padding:12px 14px;display:flex;flex-direction:column;gap:10px}
+.tv-name{font-family:var(--display);color:#f0c850;font-size:18px;letter-spacing:.05em}
+.tv-text{margin:0;color:#ead9c0;line-height:1.45;font-size:16px;min-height:2.9em}
+.tv-opts{display:grid;gap:6px}
+@media (min-width:700px){.tv-opts{grid-template-columns:1fr 1fr}}
+.tv-o{display:flex;flex-wrap:wrap;align-items:center;gap:2px 8px;text-align:left;background:#2e1e16;border-color:#5a3a22;color:#f3e6d0;padding:8px 10px}
+.tv-o:hover:not(:disabled){border-color:#c98a4a}
+.tv-o span{flex-basis:100%;font-weight:400;font-size:12px;color:#c9b08a}
+.tv-ic{width:22px;height:22px;image-rendering:pixelated}.tv-spr{width:36px;height:36px;image-rendering:pixelated;margin:-6px 0}.rl{width:32px;height:32px;padding:0;display:grid;place-items:center}.rl img{width:22px;height:22px;image-rendering:pixelated}
 .ess{color:var(--gold);font-weight:700}
 .nm-info{min-height:2.6em;font-size:14px;color:var(--muted);line-height:1.35}.nm-info b{color:var(--fg)}
 .nm-squad{display:flex;gap:6px;overflow-x:auto}
@@ -842,6 +859,7 @@ function fig(L,cls,team,pose,wk){
   else if(body!=='serpent'){const pants=body==='armor'?TC.A:body==='vest'?'#3a3040':'#4a4034';p.rect(12,24,3,5,pants);p.rect(17,24,3,5,pants);p.rect(11,28,4,3,INK);p.rect(17,28,4,3,INK)}
   if(body==='serpent'){const tl=L.tail||'#4f8a5a',tl2=shade(tl,.7);p.poly([[11,21],[20,21],[22,25],[25,28],[24,31],[8,31],[6,29],[9,25]],tl);p.poly([[6,29],[3,27],[2,24],[4,25],[8,28]],tl2);for(let x=9;x<23;x+=3)p.set(x,27,tl2);p.rect(9,30,15,1,tl2);p.poly([[11,15],[20,15],[20,22],[11,22]],cloth);p.rect(11,15,2,7,cloth2)}
   if(body==='tunic'){p.poly([[11,15],[20,15],[21,26],[10,26]],cloth);p.rect(11,15,2,11,cloth2)}
+  if(L.apron){p.rect(12,18,8,9,'#e8e2d0');p.rect(12,18,8,1,'#c9c3b8');p.line(12,18,14,15,'#e8e2d0');p.line(19,18,17,15,'#e8e2d0');p.rect(14,22,3,2,'#c9c3b8')}
   if(body==='armor'){p.rect(10,15,11,9,METAL);for(let y=16;y<24;y+=2)p.rect(10,y,11,1,METAL2);p.poly([[10,23],[21,23],[22,28],[9,28]],cloth);p.ell(11,16,3,2.2,cloth);p.ell(20,16,3,2.2,cloth);p.rect(14,18,3,3,GOLD)}
   if(body==='vest'){p.rect(11,15,9,9,sk);p.rect(15,16,1,5,sk2);p.poly([[11,15],[14,15],[13,24],[11,24]],cloth);p.poly([[17,15],[20,15],[20,24],[18,24]],cloth)}
   if(body==='robe'||body==='tunic')p.poly([[13,15],[18,15],[15.5,19]],inner);
@@ -1593,7 +1611,7 @@ async function fight(a,ai,d){
   for(const[u,i,n]of[[a,ai,res.used.a],[d,res.f.di,res.used.d]]){if(i<0||!n)continue;const it=u.items[i];it.u-=n;if(it.u<=0){u.items.splice(i,1);sfx('broke');toast(`${u.name}'s ${IT[it.k].n} broke`)}}
   for(const u of [a,d])if(u.turncoat&&u.team==='e'&&u.hp>0&&u.hp<=Math.ceil(u.maxhp/3)){u.team='p';u.turncoat=false;u.acted=true;state.freed=true;pop(u,'Freed!','heal');sfx('ding')}
   const p=a.team==='p'?a:d.team==='p'?d:null,o=p===a?d:a;
-  for(const e of res.ev)if(e.psn){const t=e.by==='a'?d:a;if(t.hp>0){t.psn=3;pop(t,'Poisoned','crit')}}
+  for(const e of res.ev)if(e.psn){const t=e.by==='a'?d:a;if(t.team==='p'&&M('soup'))continue;if(t.hp>0){t.psn=3;pop(t,'Poisoned','crit')}}
   for(const e of res.ev)if(e.stone){const t=e.by==='a'?d:a;if(t.hp>0&&!t.boss){t.stone=1;pop(t,'Stone!','crit');sfx('earth')}}
   if(p&&p.hp>0){const dealt=res.ev.some(e=>(e.by==='a')===(p===a)&&e.dmg>0);const g=gainExp(p,Math.min(100,Math.round(expFor(p,o,dealt,o.hp<=0)*(R('tome')?1.5:1))));await showExp(p,g);if(g&&g.gains)await levelUp(p,g)}
   if(p&&o.hp<=0&&p.hp>0&&R('fang')){const h=Math.min(5,p.maxhp-p.hp);if(h){p.hp+=h;pop(p,'+'+h,'heal')}}
@@ -1929,7 +1947,7 @@ const BIOMES={
 };
 for(const k in BIOMES)BIOMES[k].id=k;
 const ACTS=2;
-const MUSIC={title:'music/title.mp3'};for(const k in BIOMES)MUSIC[k]=`music/${k}.mp3`;
+const MUSIC={title:'music/title.mp3',tavern:'music/tavern.mp3'};for(const k in BIOMES)MUSIC[k]=`music/${k}.mp3`;
 let bgm=null,bgmKey='';
 /* Background music: drop mp3s into music/ (title.mp3, mushroom.mp3, shadow.mp3, swamp.mp3, forest.mp3, mountain.mp3, ship.mp3, labyrinth.mp3). Missing files are skipped. */
 function music(k){if(k===bgmKey&&bgm)return;bgmKey=k;try{if(bgm)bgm.pause();bgm=null;if(!settings.sound||!MUSIC[k])return;bgm=new Audio(MUSIC[k]);bgm.loop=true;bgm.volume=.45;bgm.play().catch(()=>{})}catch(_){}}
@@ -2054,10 +2072,10 @@ function battleRewards(){
    ROWS floors of 3 lanes, then the boss. Every path from floor 1 to the boss holds exactly the rooms in MIX
    (battles and elites both count as combat). Lanes are shuffles of the same mix, and a crossing between lanes
    is only kept if every path through the map still matches MIX, so no route can dodge the treasure room. */
-const MIX={battle:4,recruit:2,rest:1,event:1,treasure:1};
+const MIX={battle:4,recruit:1,tavern:1,rest:1,event:1,treasure:1};
 const ROWS=Object.values(MIX).reduce((a,b)=>a+b,0);
-const NODE_N={battle:'Battle',elite:'Elite',recruit:'Recruit',rest:'Rest',event:'Event',treasure:'Treasure',boss:'Boss'};
-const NODE_D={battle:'Fight monsters for EXP and loot.',elite:'A tougher fight with a strong leader. Drops an Ascension Fragment.',recruit:'Pick 1 of 3 new units.',rest:'Train one unit: it gains a level.',
+const NODE_N={tavern:'Tavern',battle:'Battle',elite:'Elite',recruit:'Recruit',rest:'Rest',event:'Event',treasure:'Treasure',boss:'Boss'};
+const NODE_D={tavern:'Spend gold on drinks, food and sellswords, and hear the local rumours.',battle:'Fight monsters for EXP and loot.',elite:'A tougher fight with a strong leader. Drops an Ascension Fragment.',recruit:'Pick 1 of 3 new units.',rest:'Train one unit: it gains a level.',
   event:'Something unexpected: a smith, a shrine, an old armoury…',treasure:'A treasure room. Pick 1 of 3 items.',boss:'The act boss.'};
 function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(rand()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
 function laneOk(a){
@@ -2094,7 +2112,7 @@ function chestArt(){const p=Px(16,16);p.rect(2,6,12,8,BROWN);p.ell(8,6,6,3,BROWN
 function eventArt(){const p=Px(16,16);p.ell(8,8,6.5,6.5,'#6a4a8a');p.line(6,5,8,4,'#f3dc9a',2);p.line(9,4,10,6,'#f3dc9a',2);p.line(10,7,8,9,'#f3dc9a',2);p.rect(7,10,2,1,'#f3dc9a');p.rect(7,12,2,2,'#f3dc9a');p.outline(OUT);return p.url()}
 const RUN_LEN=ROWS+1;
 const NODE_IC={};
-function nodeIcon(t){if(t==='boss')return bossIcon();return NODE_IC[t]||(NODE_IC[t]=t==='battle'?icon('ironJian'):t==='elite'?icon('moonDao'):t==='rest'?campArt():t==='treasure'?chestArt():t==='event'?eventArt():
+function nodeIcon(t){if(t==='boss')return bossIcon();return NODE_IC[t]||(NODE_IC[t]=t==='battle'?icon('ironJian'):t==='elite'?icon('moonDao'):t==='rest'?campArt():t==='treasure'?chestArt():t==='tavern'?mugArt():t==='event'?eventArt():
   t==='recruit'?fig({style:'short',hair:'#6b4226',cloth:'#3a7cc0'},'Heir','p','idle',null):bossIcon())}
 function bossIcon(){const B=actBiome(),k='boss:'+B.id;if(NODE_IC[k])return NODE_IC[k];const s=rngS,L=B.boss.look?clone(B.boss.look):monLook(B.boss.cls);rngS=s;return NODE_IC[k]=fig(L,B.boss.cls,'e','idle',B.boss.items[0])}
 function reachable(){const M=run.map.rows;if(!run.pos)return M[0].map((_,i)=>({r:0,i}));const n=M[run.pos.r][run.pos.i];return run.pos.r+1<M.length?n.next.map(i=>({r:run.pos.r+1,i})):[]}
@@ -2106,14 +2124,15 @@ function mapScreen(){
     lines+=`<line x1="${n.x}" y1="${Y(r)}" x2="${m.x}" y2="${Y(r+1)}" stroke="${walked?'#d8b15a':'#5a5466'}" stroke-width="${walked?2.5:1.5}" stroke-dasharray="${walked?'':'3 4'}" vector-effect="non-scaling-stroke"/>`})));
   const nodes=M.map((row,r)=>row.map((n,i)=>{const cur=run.pos&&run.pos.r===r&&run.pos.i===i,c=['nd','n-'+n.t,isOk(r,i)?'ok':'',vis.has(r+','+i)?'vis':'',cur?'cur':''].join(' ');
     return`<button type="button" class="${c}" style="left:${n.x}%;top:${Y(r)}px" data-n="${r},${i}" ${isOk(r,i)?'':'tabindex="-1"'} aria-label="${NODE_N[n.t]}"><img src="${nodeIcon(n.t)}" alt=""></button>`}).join('')).join('');
-  mapEl.innerHTML=`<div class="nm-head"><div class="eyebrow">Act ${run.act||1} of ${ACTS} · Seed ${run.seed} · <span class="ess">${run.ess||0} Essence</span></div><h2>${actBiome().n}</h2></div>
+  mapEl.innerHTML=`<div class="nm-head"><div class="eyebrow">Act ${run.act||1} of ${ACTS} · Seed ${run.seed} · <span class="ess">${run.ess||0} Essence</span> · <span class="gold">${gold()} gold</span></div><h2>${actBiome().n}</h2></div>
     <div class="nm-scroll"><div class="nm-board" style="height:${H}px"><svg viewBox="0 0 100 ${H}" preserveAspectRatio="none" width="100%" height="${H}">${lines}</svg>${nodes}</div></div>
-    ${(run.relics||[]).length?`<div class="nm-relics">${run.relics.map(k=>`<button type="button" class="rl" data-rel="${k}" aria-label="${RELICS[k].n}"><img src="${relicArt(k)}" alt=""></button>`).join('')}</div>`:''}
+    ${(run.relics||[]).length||(run.meals||[]).length?`<div class="nm-relics">${(run.relics||[]).map(k=>`<button type="button" class="rl" data-rel="${k}" aria-label="${RELICS[k].n}"><img src="${relicArt(k)}" alt=""></button>`).join('')}${(run.meals||[]).map(x=>`<button type="button" class="rl ml" data-meal="${x.id}" aria-label="${MEALS[x.id].n}"><img src="${mealArt(x.id)}" alt=""><i>${x.n}</i></button>`).join('')}</div>`:''}
     <div class="nm-info">Tap a glowing node.</div>
     <div class="nm-squad">${run.roster.map(u=>`<div><img src="${uSpr(u)}" alt=""><span>${u.name}</span><small>Lv ${u.lv}</small></div>`).join('')}</div>`;
   mapEl.hidden=false;mapEl.style.background=`radial-gradient(ellipse at 50% 0%,${actBiome().bg},#121018 72%)`;
   const sc=mapEl.querySelector('.nm-scroll'),focus=ok[0]?Y(ok[0].r):H;sc.scrollTop=Math.max(0,focus-sc.clientHeight/2);
   return new Promise(res=>{let sel=null;mapEl.onclick=e=>{
+    const ml=e.target.closest('[data-meal]');if(ml){const X=MEALS[ml.dataset.meal],n=run.meals.find(m=>m.id===ml.dataset.meal).n;mapEl.querySelector('.nm-info').innerHTML=`<b>${X.n}.</b> ${X.d} for ${n} more fight${n>1?'s':''}.`;return}
     const rl=e.target.closest('[data-rel]');if(rl){const X=RELICS[rl.dataset.rel];mapEl.querySelector('.nm-info').innerHTML=`<b>${X.n}.</b> ${X.d}`;return}
     const b=e.target.closest('.nd.ok');if(b){const[r,i]=b.dataset.n.split(',').map(Number),t=M[r][i].t;
       if(sel===b.dataset.n){mapEl.onclick=null;sfx('select');return res({r,i})}
@@ -2134,6 +2153,7 @@ async function mapStep(){
   if(N.t==='rest'){await restNode();return mapStep()}
   if(N.t==='treasure'){await treasureNode();return mapStep()}
   if(N.t==='event'){await eventNode();return mapStep()}
+  if(N.t==='tavern'){await tavernNode();return mapStep()}
   mapEl.hidden=true;run.phase='battle';await beginBattle();
 }
 
@@ -2264,7 +2284,9 @@ async function relicPick(n,rs,title,text){
 }
 /* combat hooks, called from calc(): only your units benefit */
 function relicCalc(x,xw,y){
-  const o={pow:0,df:0,acc:0,avo:0,crit:0};if(!run||!run.relics)return o;
+  const o={pow:0,df:0,acc:0,avo:0,crit:0};if(!run)return o;
+  if(x.team==='p'){if(M('boar'))o.pow+=2;if(M('bread'))o.acc+=15}if(y.team==='p'&&M('pie'))o.df+=2;
+  if(!run.relics)return o;
   if(x.team==='p'){
     if(R('banner')&&x.hp===x.maxhp)o.pow+=2;
     if(R('horn')&&state.turn===1)o.pow+=3;
@@ -2281,7 +2303,7 @@ function relicCalc(x,xw,y){
   }
   return o;
 }
-const relicMov=u=>u.team!=='p'?0:(R('boots')?1:0)+(R('spurs')&&CLS[u.cls].mnt?1:0);
+const relicMov=u=>u.team!=='p'?0:(R('boots')?1:0)+(R('spurs')&&CLS[u.cls].mnt?1:0)+(M('stew')?1:0);
 
 /* ---- promotion choices: the usual upgrade, plus a new movement type and a new role that keep the weapon ---- */
 const mvOk=(r,w,m)=>m==='armour'?!(r==='caster'||r==='support'||w==='bow'):m==='flying'?w!=='bow'&&unl('flying'):true;
@@ -2311,6 +2333,101 @@ async function promoPick(u){
   if(m==='no')return null;const v=views[+m.slice(1)];u.look=v.look;return v.k;
 }
 
+
+/* ---- gold and meals ---- */
+const GOLDWIN={battle:25,elite:45,boss:80};
+const gold=()=>run&&run.gold||0;
+/* food: temporary buffs that last n fights (counted down after each won fight) */
+const MEALS={
+  boar:{n:'Roast Boar',p:35,f:3,d:'+2 damage'},
+  bread:{n:'Honey Bread',p:25,f:3,d:'+15 Hit'},
+  pie:{n:'Fish Pie',p:30,f:3,d:'+2 Def and Res'},
+  stew:{n:'Pepper Stew',p:40,f:2,d:'+1 Move'},
+  soup:{n:'Mushroom Soup',p:20,f:3,d:'Immune to poison'}
+};
+const M=id=>!!(run&&run.meals&&run.meals.some(m=>m.id===id&&m.n>0));
+function mealArt(id){const c='ML|'+id;if(sprCache[c])return sprCache[c];const p=Px(16,16);
+  p.ell(8,12,7,3,'#d8d0bc');p.ell(8,11,6,2,'#efe6cf');
+  if(id==='boar'){p.ell(8,8,5,3.5,'#8a4a2a');p.ell(7,7,2,1,'#b06a3a');p.line(12,6,15,3,'#efe6cf')}
+  if(id==='bread'){p.ell(8,8,5,3,'#c98a3a');p.line(5,7,7,9,'#8a5a2a');p.line(8,7,10,9,'#8a5a2a');p.ell(11,5,2,1.5,'#ffd23f')}
+  if(id==='pie'){p.ell(8,9,5.5,2.6,'#c9a050');p.ell(8,8,5,2,'#e0bc6a');p.poly([[12,6],[15,4],[14,8]],'#7a9ab8')}
+  if(id==='stew'){p.ell(8,9,5.5,2.5,'#5a3a2a');p.ell(8,8,4.5,1.6,'#c8322e');p.set(6,8,'#7fd36a');p.set(10,7,'#ffd23f')}
+  if(id==='soup'){p.ell(8,9,5.5,2.5,'#7a5a3a');p.ell(8,8,4.5,1.6,'#c9a070');p.ell(6,7,1.6,1,'#d8483a');p.ell(10,8,1.4,1,'#d8483a')}
+  p.outline(OUT);return sprCache[c]=p.url()}
+function mugArt(){const c='MUG';if(sprCache[c])return sprCache[c];const p=Px(16,16);p.rect(4,5,7,9,'#a8743a');p.rect(4,5,7,1,'#7a5230');p.rect(4,10,7,1,'#7a5230');p.ring(12,9,2.4,'#7a5230');p.ell(7.5,4,4.5,2,'#f3f0e8');p.ell(5,3,1.5,1,'#ffffff');p.rect(5,6,1,7,'#c98a4a');p.outline(OUT);return sprCache[c]=p.url()}
+function afterFightMeals(){if(!run||!run.meals)return;run.meals.forEach(m=>m.n--);run.meals=run.meals.filter(m=>m.n>0)}
+
+/* ---- the tavern ---- */
+const KEEPER={name:'Marla',look:{style:'bun',hair:'#8a2a22',skin:'#e8b98f',cloth:'#5a6a3a',sash:'#7a5230',eye:'#3a5a8a',apron:true}};
+const DRINKS={
+  ale:{n:'A round of ale',p:25,d:'Every unit gains 30 EXP.',all:true},
+  whiskey:{n:'Dragonfire Whiskey',p:45,d:'One unit gains +1 Str or Mag (whichever is higher), for good.',st:u=>u.mag>u.str?'mag':'str'},
+  cordial:{n:'Moonberry Cordial',p:45,d:'One unit gains +1 Spd, for good.',st:()=>'spd'},
+  stout:{n:'Ironbark Stout',p:45,d:'One unit gains +1 Def, for good.',st:()=>'def'},
+  tea:{n:'Sage Tea',p:35,d:'One unit gains +1 Res and +1 Skl, for good.',st:()=>['res','skl']}
+};
+const GREET=['“Mind the step, it’s been loose for years. What’ll it be?”','“Sit anywhere that isn’t sticky. What can I get you?”','“You look like you’ve walked through worse than rain. Drink?”','“Another band of heroes. Coin first, stories after.”'];
+function tavernArt(){const c='TAV';if(sprCache[c])return sprCache[c];const W=160,H=90,p=Px(W,H);
+  p.rect(0,0,W,H,'#4a3020');for(let x=0;x<W;x+=12)p.rect(x,0,1,H,'#3a2418');for(let x=6;x<W;x+=12)for(let y=6;y<60;y+=20)p.set(x,y,'#6a4a30');
+  p.rect(8,10,28,22,'#2a1a10');p.rect(10,12,24,18,'#1a2240');p.rect(21,12,2,18,'#2a1a10');p.rect(10,20,24,2,'#2a1a10');[[13,14],[28,15],[16,25],[30,26],[25,13]].forEach(([x,y])=>p.set(x,y,'#f3f0e8'));p.ell(31,16,2,2,'#f3e6b0');
+  for(const sy of[24,44]){p.rect(46,sy,106,3,'#2a1a10');p.rect(46,sy,106,1,'#6a4a30');
+    for(let i=0;i<11;i++){const x=50+i*9,col=['#3a6a3a','#7a2a2a','#2a4a6a','#a8743a','#5a3a6a'][(i+sy)%5],h=7+(i*3+sy)%5;
+      if((i+sy)%4===3){p.rect(x-1,sy-6,7,6,'#c9a070');p.rect(x-1,sy-6,7,1,'#a8743a');continue}
+      p.rect(x,sy-h,5,h,col);p.rect(x+1,sy-h-3,3,3,col);p.rect(x+1,sy-h-4,3,1,'#c9a070');p.rect(x+1,sy-h+2,1,h-4,shade(col,1.4))}}
+  p.ell(150,10,9,9,'#5a3a24');p.ell(150,10,4,5,'#ffd27a');p.ell(150,10,2,3,'#fff6d0');p.line(150,0,150,4,'#2a1a10');
+  p.ell(14,62,8,10,'#7a5230');p.rect(6,56,16,2,'#4a2e1a');p.rect(6,66,16,2,'#4a2e1a');p.ell(14,52,8,2,'#8a6040');
+  p.rect(0,70,W,20,'#2a1a12');for(let x=0;x<W;x+=20)p.rect(x,70,1,20,'#1e120c');
+  return sprCache[c]=p.url()}
+function counterArt(){const c='CTR';if(sprCache[c])return sprCache[c];const p=Px(160,34);
+  p.rect(0,8,160,26,'#5a3a22');p.rect(0,8,160,5,'#8a5a32');p.rect(0,8,160,1,'#b07a42');for(let x=10;x<160;x+=20){p.rect(x,14,1,20,'#4a2e1a');p.rect(x+2,16,16,1,'#6a4428')}
+  for(const x of[28,44,118]){p.rect(x,1,7,8,'#a8743a');p.ell(x+3.5,1,4,1.5,'#f3f0e8');p.ring(x+8,4,2,'#7a5230')}
+  p.rect(132,2,6,7,'#3a6a3a');p.rect(133,0,4,2,'#3a6a3a');
+  return sprCache[c]=p.url()}
+const tavEl=document.createElement('div');tavEl.className='tav';tavEl.hidden=true;document.body.appendChild(tavEl);
+function tavShow(text,opts){
+  /* opts: [key,label,sub?,disabled?] -> resolves with the chosen key */
+  tavEl.querySelector('.tv-text').innerHTML=text;
+  tavEl.querySelector('.tv-gold').textContent=gold()+' gold';
+  tavEl.querySelector('.tv-opts').innerHTML=opts.map(([k,l,sub,dis])=>`<button type="button" class="tv-o" data-t="${k}"${dis?' disabled':''}>${l}${sub?`<span>${sub}</span>`:''}</button>`).join('');
+  return new Promise(res=>{tavEl.onclick=e=>{const b=e.target.closest('[data-t]');if(!b||b.disabled)return;sfx('tick');res(b.dataset.t)}});
+}
+function spend(n){run.gold=gold()-n;sfx('item')}
+async function tavernNode(){
+  const look={...KEEPER.look},keeper=fig(look,'Heir','g','idle',null),bought=new Set(),B=actBiome();
+  const hires=Array.from({length:3},()=>{const lv=Math.max(1,Math.round(run.roster.reduce((a,u)=>a+u.lv,0)/run.roster.length)+ri(-1,1));return genUnit(lv)});
+  const price=u=>40+15*u.lv;
+  tavEl.innerHTML=`<div class="tv-scene"><img class="tv-bg" src="${tavernArt()}" alt=""><img class="tv-keeper" src="${keeper}" alt="${KEEPER.name}"><img class="tv-counter" src="${counterArt()}" alt=""><span class="tv-gold"></span></div>
+    <div class="tv-box"><div class="tv-name">${KEEPER.name}, the innkeeper</div><p class="tv-text"></p><div class="tv-opts"></div></div>`;
+  tavEl.hidden=false;music('tavern');
+  let text=pick(GREET);
+  for(;;){
+    const m=await tavShow(text,[['drink','Drinks at the bar','Ale, spirits and tea'],['food','Something to eat',`Buffs for a few fights${(run.meals||[]).length?` · ${run.meals.length} active`:''}`],['hire','Anyone looking for work?',`${hires.length} sellsword${hires.length===1?'':'s'} at the tables`],['rumour','Heard any rumours?',''],['leave','Head back out','']]);
+    if(m==='leave'){tavEl.hidden=true;tavEl.onclick=null;music(B.id);return}
+    if(m==='rumour'){text=pick([`“They say ${B.boss.name||'a minotaur lord'} is waiting at the end of the ${B.n}. ${B.tip[2]}”`,`“A traveller came through last week, white as milk. Said the ${B.n} is no place for the unprepared. ${B.tip[2]}”`]);continue}
+    if(m==='drink'){
+      for(;;){const d=await tavShow('“Here’s what I’m pouring tonight.”',[...Object.entries(DRINKS).map(([k,x])=>[k,`<img class="tv-ic" src="${mugArt()}" alt="">${x.n} · ${x.p}g`,x.d+(bought.has(k)?' (sold out)':''),bought.has(k)||gold()<x.p]),['back','Back','']]);
+        if(d==='back')break;const x=DRINKS[d];
+        if(x.all){spend(x.p);bought.add(d);tavEl.hidden=true;for(const u of run.roster){const g=gainExp(u,30);if(g&&g.gains)await levelUp(u,g)}tavEl.hidden=false;text='“To the march!” The whole squad drinks, and tells each other stories that get bigger with every round.';break}
+        tavEl.hidden=true;const u=await pickUnit(`Who drinks the ${x.n}?`,x.d);tavEl.hidden=false;if(!u)continue;
+        spend(x.p);bought.add(d);const ss=[].concat(x.st(u));ss.forEach(s=>{if(s==='hp'){u.maxhp++;u.hp++}else u[s]++});
+        text=`${u.name} downs the ${x.n}. ${ss.map(s=>SL[s]+' +1').join(', ')}. “Steady now.”`;break}
+      continue}
+    if(m==='food'){
+      const act=(run.meals||[]).map(x=>`${MEALS[x.id].n} (${x.n} fight${x.n>1?'s':''} left)`).join(', ');
+      const f=await tavShow(`“Kitchen’s open. It all lasts a few fights, for the whole table.”${act?` Still in your bellies: ${act}.`:''}`,[...Object.entries(MEALS).map(([k,x])=>[k,`<img class="tv-ic" src="${mealArt(k)}" alt="">${x.n} · ${x.p}g`,`${x.d} for ${x.f} fights${M(k)?' (already eaten)':''}`,M(k)||gold()<x.p]),['back','Back','']]);
+      if(f!=='back'){spend(MEALS[f].p);(run.meals=run.meals||[]).push({id:f,n:MEALS[f].f});text=`The ${MEALS[f].n} arrives steaming. ${MEALS[f].d} for the next ${MEALS[f].f} fights.`}
+      continue}
+    if(m==='hire'){
+      if(!hires.length){text='“That’s everyone who wanted work tonight.”';continue}
+      const full=run.roster.length>=TEAM_CAP;
+      const h=await tavShow(`“They’ll follow you for the right price.”${full?` Your squad is full (${TEAM_CAP}), so someone would have to stay behind.`:''}`,[...hires.map((u,i)=>['h'+i,`<img class="tv-spr" src="${uSpr(u)}" alt="">${u.name} · ${price(u)}g`,`${CLS[u.cls].n} · Lv ${u.lv} · HP ${u.maxhp} Str ${u.str} Mag ${u.mag} Spd ${u.spd} Def ${u.def}`,gold()<price(u)]),['back','Back','']]);
+      if(h==='back')continue;const nu=hires[+h.slice(1)];
+      if(full){tavEl.hidden=true;const d=await modal(`<h2>Who stays behind?</h2><p>${nu.name} takes their place.</p><div class="draft">${run.roster.map((u,i)=>`<button type="button" class="dcard" data-m="d${i}">${unitCard(u)}</button>`).join('')}</div><div class="mbtns"><button type="button" data-m="skip">Keep my squad</button></div>`);tavEl.hidden=false;
+        if(d==='skip')continue;run.roster.splice(+d.slice(1),1)}
+      spend(price(nu));run.roster.push(nu);hires.splice(hires.indexOf(nu),1);text=`${nu.name} finishes their drink and picks up their gear. “When do we leave?”`;continue}
+  }
+}
+
 /* ---- flow ---- */
 async function beginBattle(){
   run.fights=(run.fights||0)+1;const def=genBattle(run.fights,run.kind);CH.length=0;CH.push(def);
@@ -2318,7 +2435,7 @@ async function beginBattle(){
 }
 async function newRun(){
   const seed=(Date.now()^Math.floor(Math.random()*1e9))>>>0;seedRng(seed);
-  run={seed,n:0,uid:1,roster:[],pos:null,path:[],act:1,relics:[],ess:0,rr:{}};run.biomes=shuffle(Object.keys(BIOMES)).slice(0,ACTS);
+  run={seed,n:0,uid:1,roster:[],pos:null,path:[],act:1,relics:[],ess:0,rr:{},gold:30,meals:[]};run.biomes=shuffle(Object.keys(BIOMES)).slice(0,ACTS);
   const opts=Array.from({length:unl('draft6')?6:5},()=>genUnit(unl('veterans')?2:1));
   const squad=await draftPick(opts,3);if(!squad)return false;
   run.roster=squad;titleEl.hidden=true;
@@ -2343,9 +2460,9 @@ async function winScreen(){
   const survivors=state.units.filter(u=>u.team==='p'),fallen=chStart.units.filter(s=>s.team==='p'&&!survivors.some(u=>u.id===s.id));
   run.roster=survivors.map(u=>{const r=clone(u);r.hp=r.maxhp;r.acted=false;r.stone=0;return r});
   const bossWin=run.kind==='boss',final=bossWin&&(run.act||1)>=ACTS,gain=bossWin?20:run.kind==='elite'?8:4,rw=battleRewards();
-  run.ess=(run.ess||0)+gain+(final?20:0);
+  run.ess=(run.ess||0)+gain+(final?20:0);const gg=GOLDWIN[run.kind]||GOLDWIN.battle;run.gold=gold()+gg;afterFightMeals();
   const ro=survivors.map(u=>`<div><img src="${portrait(u)}" alt="">${u.name}<span class="hint">Lv ${u.lv}</span></div>`).join('')+fallen.map(u=>`<div class="dead"><img src="${portrait(u)}" alt="">${u.name}<span class="hint">Fallen</span></div>`).join('');
-  await modal(`<div class="eyebrow">Act ${run.act||1} · Floor ${run.n} of ${RUN_LEN} won · Turn ${state.turn}</div><h2>${CH[0].title}</h2><p>${final?'The march is complete.':bossWin?`The ${actBiome().n} is cleared. The road leads on to the ${BIOMES[run.biomes[run.act]].n}.`:'Survivors heal fully before the next room.'}</p><div class="roster">${ro}</div><p>${rw.length?`Found: ${rw.join(', ')}. `:''}<span class="ess">+${gain+(final?20:0)} Essence</span></p><div class="mbtns"><button class="go" type="button" data-m="next">${final?'Finish':'March on'}</button></div>`);
+  await modal(`<div class="eyebrow">Act ${run.act||1} · Floor ${run.n} of ${RUN_LEN} won · Turn ${state.turn}</div><h2>${CH[0].title}</h2><p>${final?'The march is complete.':bossWin?`The ${actBiome().n} is cleared. The road leads on to the ${BIOMES[run.biomes[run.act]].n}.`:'Survivors heal fully before the next room.'}</p><div class="roster">${ro}</div><p>${rw.length?`Found: ${rw.join(', ')}. `:''}<span class="ess">+${gain+(final?20:0)} Essence</span> · <span class="gold">+${gg} gold</span></p><div class="mbtns"><button class="go" type="button" data-m="next">${final?'Finish':'March on'}</button></div>`);
   if(run.kind==='elite')await relicPick(2,['c','u'],'The elite’s spoils','Take one relic. It lasts for the rest of the run.');
   if(bossWin&&!final)await relicPick(3,['u','r'],'The boss’s hoard','Take one relic. It lasts for the rest of the run.');
   if(final){const got=bankEssence(true);await modal(`<div class="eyebrow">Victory · Seed ${run.seed}</div><h2>The march is complete</h2><p>${run.roster.length} of your squad made it to the end. <span class="ess">${got} Essence</span> banked for the Camp.</p><div class="roster">${run.roster.map(u=>`<div><img src="${portrait(u)}" alt="">${u.name}<span class="hint">${CLS[u.cls].n}</span></div>`).join('')}</div><div class="mbtns"><button class="go" type="button" data-m="ok">Back to title</button></div>`);
