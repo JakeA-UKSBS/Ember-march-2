@@ -401,7 +401,8 @@ button.it.sel{border-color:var(--gold)}
 .nd{position:absolute;width:44px;height:44px;margin:-22px 0 0 -22px;border-radius:50%;padding:0;display:grid;place-items:center;background:var(--panel2);border:2px solid var(--line);opacity:.55}
 .nd img{width:28px;height:28px;image-rendering:pixelated}
 .nd.n-boss{width:60px;height:60px;margin:-30px 0 0 -30px;border-color:#a8483a}.nd.n-boss img{width:44px;height:44px}
-.nd.n-elite{border-color:#a8483a}.nd.n-rest{border-color:#c98a3a}.nd.n-recruit{border-color:var(--blue)}.nd.n-treasure{border-color:var(--gold)}.nd.n-tavern{border-color:#c98a4a}.nd.n-event{border-color:#8a6ab0}
+.nd.n-elite{border-color:#e0503a;background:radial-gradient(circle,#5a1a16,#2a0e0c);box-shadow:0 0 12px rgba(224,80,58,.55);width:52px;height:52px;margin:-26px 0 0 -26px}.nd.n-elite img{width:34px;height:34px}
+@media (min-width:960px){.nd.n-elite{width:64px;height:64px;margin:-32px 0 0 -32px}.nd.n-elite img{width:42px;height:42px}}.nd.n-rest{border-color:#c98a3a}.nd.n-recruit{border-color:var(--blue)}.nd.n-treasure{border-color:var(--gold)}.nd.n-tavern{border-color:#c98a4a}.nd.n-event{border-color:#8a6ab0}
 .dcard[disabled]{opacity:.45}.dno{position:absolute;right:8px;bottom:6px;font-size:11px;color:var(--red)}
 .nd.vis{opacity:.85;background:#2a2620}
 .nd.cur{opacity:1;box-shadow:0 0 0 3px var(--gold)}
@@ -2072,14 +2073,14 @@ function battleRewards(){
    ROWS floors of 3 lanes, then the boss. Every path from floor 1 to the boss holds exactly the rooms in MIX
    (battles and elites both count as combat). Lanes are shuffles of the same mix, and a crossing between lanes
    is only kept if every path through the map still matches MIX, so no route can dodge the treasure room. */
-const MIX={battle:4,recruit:1,tavern:1,rest:1,event:1,treasure:1};
+const MIX={battle:3,elite:1,recruit:1,tavern:1,rest:1,event:1,treasure:1};
 const ROWS=Object.values(MIX).reduce((a,b)=>a+b,0);
 const NODE_N={tavern:'Tavern',battle:'Battle',elite:'Elite',recruit:'Recruit',rest:'Rest',event:'Event',treasure:'Treasure',boss:'Boss'};
-const NODE_D={tavern:'Spend gold on drinks, food and sellswords, and hear the local rumours.',battle:'Fight monsters for EXP and loot.',elite:'A tougher fight with a strong leader. Drops an Ascension Fragment.',recruit:'Pick 1 of 3 new units.',rest:'Train one unit: it gains a level.',
+const NODE_D={tavern:'Spend gold on drinks, food and sellswords, and hear the local rumours.',battle:'Fight monsters for EXP and loot.',elite:'Elite fight: a stronger pack led by an Elder monster. Drops an Ascension Fragment and a relic.',recruit:'Pick 1 of 3 new units.',rest:'Train one unit: it gains a level.',
   event:'Something unexpected: a smith, a shrine, an old armoury…',treasure:'A treasure room. Pick 1 of 3 items.',boss:'The act boss.'};
 function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(rand()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
 function laneOk(a){
-  if(a[0]!=='battle'||a[1]==='rest')return false;
+  if(a[0]!=='battle'||a[1]==='rest'||a.indexOf('elite')<3)return false;
   for(let i=0;i+2<a.length;i++)if(a[i]==='battle'&&a[i+1]==='battle'&&a[i+2]==='battle')return false;
   for(let i=0;i+1<a.length;i++)if(a[i]===a[i+1]&&a[i]!=='battle')return false;
   return true;
@@ -2102,17 +2103,17 @@ function genMap(){
   for(let r=0;r<ROWS-1;r++)rows[r].forEach((n,i)=>n.next=[i]);
   const cand=[];for(let r=0;r<ROWS-1;r++)for(let i=0;i<3;i++)for(const j of[i-1,i+1])if(j>=0&&j<3)cand.push([r,i,j]);
   for(const[r,i,j]of shuffle(cand)){if(rand()<.35)continue;rows[r][i].next.push(j);if(!pathsOk(rows))rows[r][i].next.pop()}
-  rows.forEach((row,r)=>row.forEach(n=>{if(n.t==='battle'&&r>=4&&rand()<.35)n.t='elite'}));
   rows.push([{t:'boss',next:[]}]);rows[ROWS-1].forEach(n=>n.next=[0]);
   rows.forEach(row=>row.forEach((n,i)=>n.x=row.length===1?50:18+i*32+ri(-5,5)));
   return{rows};
 }
+function eliteArt(){const p=Px(16,16),B='#e8e2d0',D='#8a2a22';p.line(3,6,1,1,B,2);p.line(12,6,14,1,B,2);p.ell(8,8,5,4.5,B);p.rect(5,11,6,3,B);p.rect(5,7,2,2,D);p.rect(9,7,2,2,D);p.set(5,7,'#ff5a3a');p.set(10,7,'#ff5a3a');p.set(8,10,INK);p.rect(6,13,1,1,INK);p.rect(8,13,1,1,INK);p.rect(10,13,1,1,INK);p.outline(OUT);return p.url()}
 function campArt(){const p=Px(16,16);p.line(2,14,13,10,BROWN,2);p.line(2,10,13,14,BROWN2,2);p.poly([[8,1],[12,10],[8,12],[4,10]],'#ff8a3c');p.poly([[8,5],[10,10],[8,11],[6,10]],'#ffe14a');p.outline(OUT);return p.url()}
 function chestArt(){const p=Px(16,16);p.rect(2,6,12,8,BROWN);p.ell(8,6,6,3,BROWN2,(x,y)=>y<=6);p.rect(2,8,12,1,GOLD);p.rect(7,8,2,3,GOLD);p.rect(2,6,1,8,BROWN2);p.rect(13,6,1,8,BROWN2);p.set(8,9,INK);p.outline(OUT);return p.url()}
 function eventArt(){const p=Px(16,16);p.ell(8,8,6.5,6.5,'#6a4a8a');p.line(6,5,8,4,'#f3dc9a',2);p.line(9,4,10,6,'#f3dc9a',2);p.line(10,7,8,9,'#f3dc9a',2);p.rect(7,10,2,1,'#f3dc9a');p.rect(7,12,2,2,'#f3dc9a');p.outline(OUT);return p.url()}
 const RUN_LEN=ROWS+1;
 const NODE_IC={};
-function nodeIcon(t){if(t==='boss')return bossIcon();return NODE_IC[t]||(NODE_IC[t]=t==='battle'?icon('ironJian'):t==='elite'?icon('moonDao'):t==='rest'?campArt():t==='treasure'?chestArt():t==='tavern'?mugArt():t==='event'?eventArt():
+function nodeIcon(t){if(t==='boss')return bossIcon();return NODE_IC[t]||(NODE_IC[t]=t==='battle'?icon('ironJian'):t==='elite'?eliteArt():t==='rest'?campArt():t==='treasure'?chestArt():t==='tavern'?mugArt():t==='event'?eventArt():
   t==='recruit'?fig({style:'short',hair:'#6b4226',cloth:'#3a7cc0'},'Heir','p','idle',null):bossIcon())}
 function bossIcon(){const B=actBiome(),k='boss:'+B.id;if(NODE_IC[k])return NODE_IC[k];const s=rngS,L=B.boss.look?clone(B.boss.look):monLook(B.boss.cls);rngS=s;return NODE_IC[k]=fig(L,B.boss.cls,'e','idle',B.boss.items[0])}
 function reachable(){const M=run.map.rows;if(!run.pos)return M[0].map((_,i)=>({r:0,i}));const n=M[run.pos.r][run.pos.i];return run.pos.r+1<M.length?n.next.map(i=>({r:run.pos.r+1,i})):[]}
