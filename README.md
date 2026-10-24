@@ -1,9 +1,25 @@
 # Ember March (roguelike)
 
-A run-based tactics roguelike in the style of GBA Fire Emblem, for phones. Forked from Nightbound's engine.
+A run-based tactics roguelike in the style of GBA Fire Emblem. Built for PC first (map left, command panel right), and still playable on phones. Forked from Nightbound's engine.
 
 ## Run it
-Open `index.html` in a browser.
+Open `index.html` in a browser. On PC: Esc or right-click backs out of a move or menu, E ends the turn, the mouse wheel zooms.
+
+## Music
+Drop mp3 files into a `music/` folder next to `index.html`: `title.mp3`, `mushroom.mp3`, `shadow.mp3`, `swamp.mp3`, `forest.mp3`, `mountain.mp3`, `ship.mp3`, `labyrinth.mp3`. Each loops while you're in that region (map and battles). Missing files are skipped. "Sound and music" in Options turns it off.
+
+## Regions
+Each run picks 2 of these as its acts (`BIOMES`, `ACTS`). Each has 2-3 battle maps, a boss map, a monster pool and a rule.
+| Region | Monsters | Rule | Boss |
+| --- | --- | --- | --- |
+| Mushroom Kingdom | Sporelings, Myconids, Mindsnails | Spores poison on a hit (3 HP a turn for 3 turns; a Salve cures it) | King Morel the Merry |
+| Shadow Kingdom | Skeletons, Skeleton Archers, Ghosts, Gloomwings | Ghosts pass through walls; dark magic drains | Vaelith the Necromancer (raises skeletons every other turn) |
+| The Swamp | Lamias, Mud Monsters, Wolves | Starting a turn in ankle-deep water or mangrove roots costs 1 Move; sand is solid | Krondis the alligator |
+| Cursed Woodland | Wolves, Cursed Stags, Harpies | Cursed thickets: +25 Avoid, 2 Move to enter | The Hollow Stag |
+| Magma Mountains | Boulder Golems, Fire Sprites, Harpies | Magma blocks foot units; fliers and fire creatures cross it | Pyraxis, the Magma Dragon |
+| The Flying Ship | Wyverns, Pegasi, Harpies, Storm Harpies | Defend the deck for 5-6 turns; fliers arrive every turn | The Tempest (storm elemental) |
+| The Labyrinth | Gremlins, Beholders (stone gaze), Minotaurs | Maze corridors | A Minotaur lord |
+
 
 ## A run
 - Pick 3 of 5 generated units. Fallen units are gone for the rest of the run; you only lose when the whole squad falls.
@@ -21,7 +37,9 @@ Open `index.html` in a browser.
 - `genUnit()`: rolls stats, growths, starting skill, kit, name and look.
 - `genLook()`, `GEAR`, `SKINS`, `HAIRC`, `CLOTH`: the random sprite parts. Sprites are 32×32, drawn in code by `fig()`.
 - Monsters: `Wolf`, `Harpy`, `LamiaM`, `MinotaurM` in `CLS`/`FOE`, looks from `monLook()`. Wolves use the `beast` body in `fig()`.
-- `MAPS`: battle maps. `genBattle()` picks a map and enemies by battle number.
+- `MAPS`: battle maps, grouped by region. `genBattle()` picks a map and enemies from the act's region. Region terrain letters are listed at the top of the REGIONS section; tile art is `bioTile()`.
+- Region monster sprites are bodies in `fig()` (`shroom`, `ghost`, `mud`, `gator`, `golem`, `flame`, `dragon`, `storm`, `eye`, riderless `mount`), with looks from `MONLOOK`. Skeletons are humanoids with `look.skel`.
+- Reinforcements (`def.waves`) are plain data, `{turn:[{c,lv,x,y,ifBoss}]}`, so they survive a save.
 - Mounted units are drawn by `horseUnder()`: a random-coloured horse with team barding, rider laid on top.
 - Promotion: an Ascension Fragment at Lv 5+ (`PROMO_LV`) offers up to 3 paths (`promoOptions()`): the usual upgrade, a new movement type, and a new role that keeps the weapon. Fragments drop from elites and treasure.
 - Flying units (`MOVES.flying`, needs the Sky Riders unlock): pegasus riders for skirmishers, casters and menders, wyverns for brutes and guards. Drawn by `horseUnder()` with wings.

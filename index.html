@@ -383,6 +383,14 @@ button.it.sel{border-color:var(--gold)}
 .roster div{display:flex;flex-direction:column;align-items:center;font-size:12px;gap:2px;width:60px;text-align:center}
 .roster img{width:48px;height:48px;object-fit:cover;background:var(--panel2);border-radius:6px}
 .roster .dead img{filter:grayscale(1) brightness(.5)}
+.unit.psn img{filter:drop-shadow(0 0 3px #b46ae0) saturate(.8)}.psnt{color:#c58aff}
+/* PC: map left, command panel right */
+@media (min-width:960px){
+  .wrap{max-width:1500px;height:100%;box-sizing:border-box;display:grid;grid-template-columns:minmax(0,1fr) 360px;grid-template-rows:auto auto minmax(0,1fr);column-gap:14px;padding-inline:20px;padding-block:12px}
+  .top,.bar{grid-column:1/-1}.vp{grid-column:1;grid-row:3;height:auto;min-height:0}.panel{grid-column:2;grid-row:3;overflow:auto;align-self:stretch}
+  h1{font-size:26px}.mbox{max-width:640px}.draft{display:grid;grid-template-columns:1fr 1fr}.nm-board{max-width:620px}.nm-scroll{max-width:760px;width:100%;margin:0 auto}
+  .nm-head,.nm-info,.nm-squad,.nm-relics{max-width:760px;width:100%;margin-inline:auto}.nd{width:54px;height:54px;margin:-27px 0 0 -27px}.nd img{width:34px;height:34px}
+}
 .draft{display:flex;flex-direction:column;gap:6px}
 .nmap{position:fixed;inset:0;z-index:55;display:flex;flex-direction:column;background:radial-gradient(ellipse at 50% 0%,#2a2433,#121018 70%);padding:12px 12px max(12px,env(safe-area-inset-bottom,0px));padding-top:max(12px,env(safe-area-inset-top,0px));gap:8px}
 .nm-head h2{font-family:var(--display);margin:0;font-size:24px;letter-spacing:.05em}
@@ -718,7 +726,7 @@ function hairFront(p,L,hair,hair2,TC,cloth){
   if(g==='circlet'){p.rect(10,6,12,1,GOLD);p.set(15,5,GOLD);p.set(16,5,GOLD);p.set(15,6,'#9fd8ff');p.set(16,6,'#9fd8ff')}
   if(L.beard){p.rect(16,14,3,3,hair);p.rect(17,12,3,1,hair)}
 }
-function horseUnder(p,L,TC,cloth,strike){
+function horseUnder(p,L,TC,cloth,strike,bare){
   /* a horse, pegasus (L.mount='pegasus') or wyvern under the rider; the rider's legs are dropped and the rest lifted 3px */
   const q=Px(32,32),hc=L.horse||'#7a5230',hc2=shade(hc,.72),hi=shade(hc,1.18),rear=strike?-2:0,wy=L.mount==='wyvern',peg=L.mount==='pegasus',mane=peg?'#e8e2d0':shade(hc,.45);
   if(wy||peg){const up=strike?-2:0,wc=wy?shade(hc,.85):'#ffffff',wc2=wy?shade(hc,.6):'#b9c4d6';
@@ -733,9 +741,9 @@ function horseUnder(p,L,TC,cloth,strike){
   if(wy){q.poly([[25,10+rear],[31,12+rear],[31,15+rear],[26,16+rear]],hc);q.line(24,10+rear,22,6+rear,'#e8e2d0');q.line(26,10+rear,25,5+rear,'#e8e2d0');
     q.set(28,11+rear,'#ffd23f');q.set(31,13+rear,INK);for(let y=13;y<20;y+=2)q.set(21+(20-y)/4,y+rear/2,hc2)}
   else{q.poly([[25,11+rear],[31,14+rear],[31,17+rear],[27,17+rear]],hc);q.line(22,12+rear,20,20,mane,2);q.poly([[24,11+rear],[25,7+rear],[27,11+rear]],hc2);q.set(27,13+rear,INK);q.set(30,15+rear,INK);q.line(26,16+rear,22,19,BROWN2)}
-  q.poly([[10,18],[20,18],[19,25],[11,25]],TC.a);q.rect(10,18,10,1,GOLD);q.rect(11,24,8,1,shade(TC.a,.7));
+  if(!bare){q.poly([[10,18],[20,18],[19,25],[11,25]],TC.a);q.rect(10,18,10,1,GOLD);q.rect(11,24,8,1,shade(TC.a,.7))}
   for(let y=0;y<32;y++)for(let x=0;x<32;x++){const c=p.g[y*32+x];if(!c||(y>=24&&x>=8&&x<=23))continue;if(y-3>=0)q.set(x,y-3,c)}
-  q.rect(14,19,3,5,shade(cloth,.7));q.rect(14,24,4,2,INK);
+  if(!bare){q.rect(14,19,3,5,shade(cloth,.7));q.rect(14,24,4,2,INK)}
   q.outline(OUT);return q.url();
 }
 const sprCache={};
@@ -747,6 +755,65 @@ function fig(L,cls,team,pose,wk){
     p.ell(18,18,9.5,9.5,sh);p.ring(18,18,7,sh2);p.ring(19,18,4.5,sh2);p.ring(19.5,18.5,2.2,sh2);p.line(10,22,26,22,shade(sh,.85));
     p.ell(7+lean,24,4,3.5,b);p.line(6+lean,21,4+lean,12,b2);p.line(9+lean,21,11+lean,12,b2);p.ell(4+lean,11,1.8,1.8,ey);p.ell(11+lean,11,1.8,1.8,ey);
     p.outline(OUT);return p.url()}
+  if(body==='mount'){return horseUnder(Px(32,32),L,TC,cloth,strike,true)}
+  if(body==='shroom'){const k=L.small?.75:1,X=x=>16+(x-16)*k,Y=y=>31-(31-y)*k,cap=L.cap||'#d8483a',cap2=shade(cap,.72),st=L.stem||'#efe6cf',st2=shade(st,.8),sq=strike?2:0;
+    p.poly([[X(11),Y(17)],[X(21),Y(17)],[X(22),Y(29)],[X(10),Y(29)]],st);p.rect(X(10),Y(17),Math.max(1,2*k),12*k,st2);
+    p.rect(X(10),Y(29),4*k,2,st2);p.rect(X(18),Y(29),4*k,2,st2);
+    p.rect(X(13),Y(20),2,3,INK);p.rect(X(18),Y(20),2,3,INK);p.set(X(13),Y(20),'#ffffff');p.set(X(18),Y(20),'#ffffff');
+    p.set(X(14),Y(24),INK);p.rect(X(15),Y(25),3,1,INK);p.set(X(18),Y(24),INK);p.set(X(12),Y(23),'#f0a0a0');p.set(X(20),Y(23),'#f0a0a0');
+    p.ell(16,Y(12)-sq,12*k,8*k,cap,(x,y)=>y<=Y(16)-sq);p.rect(X(4),Y(15)-sq,24*k,2,cap2);for(let x=X(6);x<X(26);x+=2)p.set(x,Y(16)-sq,'#d9c9a8');
+    [[10,10],[17,6],[22,11],[14,13],[25,14]].forEach(([x,y])=>p.ell(X(x),Y(y)-sq,1.6*k,1.3*k,'#ffffff'));
+    if(L.crown){p.rect(12,1,9,2,GOLD);[12,16,20].forEach(x=>p.rect(x,0,1,1,GOLD));p.set(16,1,RED)}
+    if(strike)for(const[x,y]of[[27,18],[29,15],[30,20],[26,14],[31,17]])p.set(x,y,'#c58aff');
+    p.outline(OUT);return p.url()}
+  if(body==='ghost'){const c=L.body||'#d8e0f0',c2=shade(c,.78),b=strike?-2:0,ey=L.eye||'#7fe3ff';
+    p.ell(16,12+b,8,8,c);p.rect(8,12+b,16,12,c);for(let i=0;i<4;i++)p.poly([[8+i*4,24+b],[12+i*4,24+b],[10+i*4,28+b+(i%2)]],c);
+    p.rect(8,12+b,2,12,c2);p.line(8,17+b,4,21+b,c2,2);if(strike)p.line(23,15+b,30,12+b,c,2);else p.line(23,17+b,27,21+b,c,2);
+    p.ell(13,12+b,1.8,2.6,INK);p.ell(19,12+b,1.8,2.6,INK);p.set(13,12+b,ey);p.set(19,12+b,ey);p.ell(16,18+b,1.6,2.2,INK);
+    p.outline(OUT);return p.url()}
+  if(body==='mud'){const c=L.body||'#5a4a32',c2=shade(c,.7),c3=shade(c,1.25),s=strike?4:0;
+    p.ell(16,30,13,2,c2);p.ell(16,22,11,8,c);p.ell(16,14,7,7,c);p.rect(6,24,2,5,c2);p.rect(24,23,2,6,c2);
+    p.ell(12,12,2,1.5,c3);p.ell(20,20,2,1.4,c3);p.line(13,7,11,4,'#4f8a5a');p.line(18,7,20,3,'#4f8a5a');p.set(16,7,'#6aaa5a');
+    p.ell(13,14,1.9,1.9,'#ffd23f');p.ell(19,13,1.9,1.9,'#ffd23f');p.set(13,14,INK);p.set(19,13,INK);p.ell(16,19,3,1.4,'#2a1a10');
+    p.line(25,19,27+s,15-s,c,3);p.ell(28+s,14-s,2.5,2.5,c);
+    p.outline(OUT);return p.url()}
+  if(body==='gator'){const c=L.body||'#4f6a3a',c2=shade(c,.7),bl='#c9c08a',o=strike?4:0;
+    p.poly([[0,23],[8,19],[10,25],[1,25]],c2);p.ell(14,22,8,4.5,c);p.ell(14,25,6,1.4,bl);for(let x=8;x<=20;x+=3)p.set(x,18,c2);
+    p.rect(8,25,3,4,c2);p.rect(17,25,3,4,c2);p.rect(11,25,3,4,c);p.rect(20,25,3,4,c);
+    p.poly([[20,19],[31,20],[31,23],[20,25]],c);p.poly([[20,18],[31,19-o],[31,21-o],[21,21]],c);p.line(21,21,31,22,'#7a2a2a');
+    for(let x=23;x<31;x+=2){p.set(x,22,'#ffffff');if(o)p.set(x,20-o+1,'#ffffff')}p.ell(23,18,2,1.5,c);p.rect(22,17,2,2,'#ffd23f');p.set(23,17,INK);
+    if(L.crown){p.rect(20,13,6,2,GOLD);p.set(20,12,GOLD);p.set(23,12,GOLD);p.set(25,12,GOLD)}
+    p.outline(OUT);return p.url()}
+  if(body==='golem'){const c=L.body||'#7a746e',c2=shade(c,.7),c3=shade(c,1.2),gl=L.eye||'#ff9a3c',s=strike?3:0;
+    p.poly([[8,12],[24,11],[27,24],[22,28],[10,28],[5,22]],c);p.poly([[12,4],[20,4],[22,11],[10,11]],c);p.line(8,12,6,22,c2,2);p.line(12,4,10,11,c2);
+    p.ell(12,15,2.5,1.5,c3);p.ell(20,8,1.5,1,c3);p.line(15,15,17,19,gl);p.line(17,19,15,23,gl);
+    p.rect(13,7,2,1,gl);p.rect(18,7,2,1,gl);p.ell(4,20,3.5,4,c);p.ell(27+s,17-s,3.8,4,c);p.ell(27+s,17-s,1.5,1.5,c2);
+    p.rect(10,27,4,4,c2);p.rect(18,27,4,4,c2);
+    p.outline(OUT);return p.url()}
+  if(body==='flame'){const c=L.body||'#ff8a3c',c2='#ffe14a',c3='#c8322e',f=strike?3:0;
+    p.poly([[16,1],[22,9],[25,18],[22,26],[10,26],[7,18],[10,9],[12,12]],c3);p.ell(16,19,7,7,c);p.poly([[16,5],[21,14],[11,14]],c);p.ell(16,21,4,4,c2);
+    p.rect(13,18,2,2,INK);p.rect(18,18,2,2,INK);p.set(15,22,INK);p.set(17,22,INK);[[8,6],[24,5],[27,13],[5,14]].forEach(([x,y])=>p.set(x,y,c2));
+    if(strike){p.ell(27,16,3,3,c);p.ell(28,16,1.5,1.5,c2)}p.ell(16,30,5,1,'#3a1a14');
+    p.outline(OUT);return p.url()}
+  if(body==='dragon'){const c=L.body||'#5a2a22',c2=shade(c,.7),lv='#ff8a3c',ly='#ffe14a';
+    p.poly([[12,15],[1,2],[4,8],[0,12],[5,14],[2,19],[12,20]],c2);p.line(12,15,2,3,lv);p.line(12,17,1,12,lv);
+    p.poly([[5,25],[0,30],[10,27]],c2);p.ell(14,22,8,6,c);p.ell(15,25,5,2.5,lv);p.line(10,23,19,23,ly);
+    p.rect(8,26,3,5,c2);p.rect(17,26,3,5,c2);p.rect(11,27,3,4,c);p.rect(20,27,3,4,c);
+    p.poly([[18,19],[21,10],[26,9],[23,21]],c);for(let y=12;y<20;y+=2)p.set(21,y,lv);
+    p.poly([[21,5],[31,8],[31,12],[22,12]],c);p.line(22,6,19,1,'#e8e2d0',2);p.line(25,6,24,1,'#e8e2d0');p.rect(25,7,2,1,ly);p.set(30,10,INK);
+    if(strike){p.poly([[31,10],[31,10],[31,10]],ly);p.line(30,11,31,14,lv,2);p.line(29,12,31,17,ly)}
+    p.outline(OUT);return p.url()}
+  if(body==='storm'){const c='#8a96b8',c2='#5a6688',c3='#c8d0e8',bo='#ffe14a';
+    p.ell(10,12,6,5,c);p.ell(20,9,7,6,c);p.ell(16,15,9,6,c);p.ell(25,14,5,4,c);p.ell(16,19,9,3,c2);p.ell(19,6,3,1.5,c3);p.ell(9,9,2,1,c3);
+    p.rect(12,13,3,2,'#9fd8ff');p.rect(19,12,3,2,'#9fd8ff');p.line(13,17,19,17,c2);
+    p.line(16,21,13,25,bo,2);p.line(13,25,17,26,bo,2);p.line(17,26,14,31,bo,2);if(strike){p.line(26,15,29,19,bo,2);p.line(29,19,27,22,bo,2);p.line(27,22,31,27,bo,2)}
+    p.outline(OUT);return p.url()}
+  if(body==='eye'){const c=L.body||'#8a4a6a',c2=shade(c,.7),ey='#f3f0e8',ir=L.eye||'#5fc2a0';
+    [[-8,-1],[-4,-2],[0,-2],[4,-2],[8,-1]].forEach(([dx],i)=>{const tx=16+dx*1.4,ty=3+(i%2);p.line(16+dx*.6,10,tx,ty+2,c2);p.ell(tx,ty,1.7,1.7,ey);p.set(Math.round(tx),Math.round(ty),ir)});
+    p.ell(16,18,10,9,c);p.ell(13,21,6,5,c2,(x,y)=>x<12);p.ell(16,17,5,4.5,ey);p.ell(16,17,2.6,2.6,ir);p.ell(16,17,1,1,INK);p.line(11,13,21,13,c2);
+    p.line(10,24,22,24,'#2a1a1a');for(let x=11;x<22;x+=2)p.set(x,25,'#ffffff');
+    if(strike)p.line(21,17,31,14,'#c77dff',2);
+    p.outline(OUT);return p.url()}
   if(body==='beast'){const f=L.fur||'#8a8f9a',f2=shade(f,.7),f3=shade(f,1.25),ey=L.eye||'#ffd23f',ln=strike?3:0;
     p.poly([[6+ln,17],[1+ln,11],[2+ln,9],[8+ln,15]],f2);
     p.rect(8+ln,22,2,7,f2);p.rect(18+ln,22,2,7,f2);
@@ -754,6 +821,7 @@ function fig(L,cls,team,pose,wk){
     p.rect(11+ln,22,2,7,f);p.rect(21+ln,22,2,7,f);p.rect(7+ln,29,3,1,f2);p.rect(10+ln,29,3,1,f);p.rect(17+ln,29,3,1,f2);p.rect(20+ln,29,3,1,f);
     p.ell(23+ln,14,4.6,4.4,f);p.poly([[25+ln,12],[31,14],[31,17],[25+ln,18]],f);p.rect(26+ln,17,5-ln,1,f3);
     p.poly([[19+ln,11],[20+ln,5],[23+ln,10]],f2);p.poly([[23+ln,10],[25+ln,5],[26+ln,11]],f);p.set(24+ln,8,'#c87a7a');
+    if(L.antlers){const a=L.antlers;p.line(21+ln,9,19+ln,2,a);p.line(20+ln,5,17+ln,3,a);p.line(24+ln,9,27+ln,1,a);p.line(26+ln,5,29+ln,3,a)}
     p.rect(25+ln,12,2,1,ey);p.set(31,14,OUT);
     if(strike){p.line(27,17,31,19,'#c8322e');p.set(28,18,'#ffffff');p.set(30,18,'#ffffff')}
     p.outline(OUT);return p.url()}
@@ -782,6 +850,8 @@ function fig(L,cls,team,pose,wk){
   p.ell(15.5,10,4.8,5.2,sk);p.rect(11,11,2,2,sk2);
   p.rect(18,9,1,2,L.eye||INK);p.rect(14,9,1,2,L.eye||INK);p.rect(18,8,2,1,hair2);p.rect(13,8,2,1,hair2);p.rect(16,12,2,1,'#c0786a');
   hairFront(p,L,hair,hair2,TC,cloth);
+  if(L.skel){const ey=L.eye||'#ff5a3a';p.rect(13,8,3,3,INK);p.rect(17,8,3,3,INK);p.set(14,9,ey);p.set(18,9,ey);p.set(16,11,INK);p.rect(14,13,4,1,INK);p.set(15,13,sk);p.set(17,13,sk);
+    if(body==='vest'){for(const y of[16,18,20])p.line(13,y,17,y,INK);p.line(15,15,15,23,shade(sk,.8))}}
   if(L.horns){p.line(12,6,9,2,'#d8d0bc',2);p.line(9,2,8,0,'#d8d0bc');p.line(19,6,22,2,'#d8d0bc',2);p.line(22,2,23,0,'#d8d0bc')}
   if(CLS[cls].tier===2){p.rect(9,14,4,2,GOLD);p.rect(19,14,4,2,GOLD);p.rect(12,5,7,1,GOLD);p.set(15,4,'#9fd8ff')}
   const fsl=body==='vest'?sk:cloth;
@@ -916,7 +986,7 @@ document.addEventListener('pointerdown',()=>{if(settings.sound)audio()},{capture
 /* ================= RULES ================= */
 const isWpn=k=>WTYPES.includes(IT[k].t);
 /* Fliers cross sky and rough ground at cost 1, but not walls, masts or crags. */
-function mcost(u,x,y){const t=ter(x,y);if(CLS[u.cls].fly)return['wall','mast','cliff'].includes(t.k)?99:1;if(CLS[u.cls].mnt&&(t.k==='forest'||t.k==='hill'))return t.c+1;return t.c}
+function mcost(u,x,y){const t=ter(x,y);if(CLS[u.cls].phase)return 1;if(t.k==='lava'&&CLS[u.cls].lava)return 1;if(CLS[u.cls].fly)return['wall','mast','cliff'].includes(t.k)?99:1;if(CLS[u.cls].mnt&&(t.k==='forest'||t.k==='hill'))return t.c+1;return t.c}
 /* Teams: p = player, e = enemy, g = green 'other' units that fight the enemy and can be recruited. */
 const hostile=(a,b)=>(a.team==='e')!==(b.team==='e');
 /* Skills: u.skill is the personal skill (free). u.skills holds extras: {id,src:'lv10'} (free) or {id,src:'scroll'} (costs capacity). */
@@ -964,6 +1034,7 @@ function resolve(a,ai,d){
       if(has(Y,'shieldwall')&&dmg>0&&rn()<Y.skl*2){e.guard=SKILLS.shieldwall.n;dmg=Math.floor(dmg/2)}
       dmg=Math.min(dmg,hp[o]);hp[o]-=dmg;e.dmg=dmg;
       if(has(X,'stone')&&hp[o]>0&&rn()<X.skl){e.stone=true;e.proc=e.proc||SKILLS.stone.n}
+      if(has(X,'spore')&&hp[o]>0&&dmg>0){e.psn=true;e.proc=e.proc||SKILLS.spore.n}
       if(has(X,'siphon')&&dmg>0&&rn()<X.skl*2){e.proc=SKILLS.siphon.n;e.heal=Math.min(dmg,mx[s]-hp[s]);hp[s]+=e.heal}
       const XW=s==='a'?f.aw:f.dw;if(XW&&XW.drain&&dmg>0){const dh=Math.min(Math.ceil(dmg/4),mx[s]-hp[s]);if(dh>0){hp[s]+=dh;e.heal+=dh}}
     }
@@ -985,12 +1056,14 @@ function gainExp(u,amt){
 }
 
 /* ================= MAP LOGIC ================= */
+/* ankle-deep water: a unit that starts its turn in it has 1 less Move (fliers, ghosts and swamp creatures ignore it) */
+function slowOf(u){const C=CLS[u.cls];return ter(u.x,u.y).slow&&!C.fly&&!C.wade&&!C.phase?1:0}
 function reach(u){
   const dist={[key(u.x,u.y)]:0},q=[[u.x,u.y]];
   while(q.length){
     q.sort((a,b)=>dist[key(...a)]-dist[key(...b)]);const[x,y]=q.shift(),d=dist[key(x,y)];
     for(const[dx,dy]of DIRS){const nx=x+dx,ny=y+dy;if(nx<0||ny<0||nx>=MW||ny>=MH)continue;
-      const nd=d+mcost(u,nx,ny);if(nd>u.mov+relicMov(u))continue;const o=unitAt(nx,ny);if(o&&hostile(o,u))continue;
+      const nd=d+mcost(u,nx,ny);if(nd>u.mov+relicMov(u)-slowOf(u))continue;const o=unitAt(nx,ny);if(o&&hostile(o,u))continue;
       const k=key(nx,ny);if(dist[k]===undefined||nd<dist[k]){dist[k]=nd;q.push([nx,ny])}}
   }
   const s=new Set();for(const k in dist){const[x,y]=k.split(',').map(Number),o=unitAt(x,y);if(!o||o===u)s.add(k)}return s;
@@ -1036,6 +1109,11 @@ function ptrUp(e){
 vp.addEventListener('pointerup',ptrUp);vp.addEventListener('pointercancel',ptrUp);
 vp.addEventListener('wheel',e=>{e.preventDefault();const b=vb(),mx=e.clientX-b.l,my=e.clientY-b.t,wx=(mx-cam.x)/cam.s,wy=(my-cam.y)/cam.s;cam.s=clamp(cam.s*(e.deltaY<0?1.12:.89),minS(),2.2);cam.x=mx-wx*cam.s;cam.y=my-wy*cam.s;applyCam()},{passive:false});
 addEventListener('resize',()=>applyCam());
+/* keyboard and mouse: Esc or right-click backs out, E ends the turn */
+function backOut(){if(busy||!modalEl.hidden||phase!=='player'||over)return;const sh=document.querySelector('.sheet');if(sh&&!sh.hidden)return;
+  if(ui==='move'||ui==='menu')act('cancel');else if(ui==='target'||ui==='confirm')act('back');else if(ui==='items')act('menu');else{clearSel();ui='idle';render()}}
+document.addEventListener('keydown',e=>{if(e.key==='Escape')backOut();else if((e.key==='e'||e.key==='E')&&modalEl.hidden&&!busy)$('#btnEnd').click()});
+vp.addEventListener('contextmenu',e=>{e.preventDefault();backOut()});
 
 /* ================= RENDER ================= */
 const uEls={};
@@ -1066,7 +1144,7 @@ function render(){
   for(const u of state.units){
     live.add(u.id);let el=uEls[u.id];
     if(!el){el=document.createElement('div');el.innerHTML='<img alt=""><div class="hpb"><i></i></div>';boardEl.appendChild(el);uEls[u.id]=el}
-    el.className='unit '+u.team+(u.stone?' stone':'')+(u.boss?' boss':'')+(u.acted&&u.team==='p'?' done':'')+(thr.has(u.id)?' threat':'');
+    el.className='unit '+u.team+(u.stone?' stone':'')+(u.psn?' psn':'')+(u.boss?' boss':'')+(u.acted&&u.team==='p'?' done':'')+(thr.has(u.id)?' threat':'');
     el.style.left=u.x*T+'px';el.style.top=u.y*T+'px';el.style.opacity=u.hp>0?1:0;
     const src=sprite(u,'idle',mapWk(u)),img=el.firstChild;if(img.dataset.s!==src){img.src=src;img.dataset.s=src}
     el.querySelector('.hpb i').style.width=(u.hp/u.maxhp*100)+'%';
@@ -1082,7 +1160,7 @@ function render(){
   $('#btnDev').hidden=!settings.dev;
   renderPanel();
 }
-function terrText(t){return t.n+(t.df?` +${t.df} Def`:'')+(t.av?` +${t.av} Avo`:'')}
+function terrText(t){return t.n+(t.df?` +${t.df} Def`:'')+(t.av?` +${t.av} Avo`:'')+(t.slow?' · −1 Move':'')}
 function statBox(l,v){return`<div><small>${l}</small>${v}</div>`}
 function itemRows(u,btn){
   const ei=eqIdx(u);
@@ -1095,7 +1173,7 @@ function card(u){
    <div class="ch"><b>${u.name}</b><span>${CLS[u.cls].n} · Lv ${u.lv}</span></div>
    <div class="hp"><span class="bar"><i style="width:${u.hp/u.maxhp*100}%"></i></span><span>${u.hp}/${u.maxhp} HP</span></div>
    ${u.team==='p'?`<div class="xp"><span class="bar"><i style="width:${u.exp}%"></i></span><span>${u.exp} EXP</span></div>`:''}
-   <div class="eq">${w?`<img src="${icon(w.key)}" alt="">${w.n}`:'Unarmed'}${sk?` · <b class="sk">${sk.n}</b>`:''} · ${terrText(t)}</div>
+   <div class="eq">${w?`<img src="${icon(w.key)}" alt="">${w.n}`:'Unarmed'}${sk?` · <b class="sk">${sk.n}</b>`:''} · ${terrText(t)}${u.psn?` · <b class="psnt">Poisoned (${u.psn})</b>`:''}</div>
    ${u.recruit?`<div class="eq sk">Can be recruited: move ${lordName()} next to ${u.name} and Talk.</div>`:''}
   </div><button class="mini" type="button" data-act="sheet:${u.id}">Details</button></div>`;
   return h;
@@ -1176,7 +1254,7 @@ function renderPanel(){
   }
   else if(ui==='items'){
     const it=itemSel!=null?u.items[itemSel]:null;let ops='';
-    if(it){if(isWpn(it.k)&&canUse(u,it.k)&&itemSel!==eqIdx(u))ops+='<button class="go" type="button" data-act="equip">Equip</button>';if(IT[it.k].t==='item'&&u.hp<u.maxhp)ops+='<button class="go" type="button" data-act="use">Use</button>';if(IT[it.k].t==='scroll'){const r=learnBlock(u,IT[it.k].skill);ops+=r?`<span class="hint">${r}</span>`:`<button class="go" type="button" data-act="learn">Learn ${SKILLS[IT[it.k].skill].n} (${SKILLS[IT[it.k].skill].cost})</button>`}if(IT[it.k].t==='crest'){const r=promoBlock(u);ops+=r?`<span class="hint">${r}</span>`:`<button class="go" type="button" data-act="ascend">Ascend…</button>`}if(isWpn(it.k)&&!canUse(u,it.k))ops+=`<span class="hint">${u.name} can't wield this.</span>`}
+    if(it){if(isWpn(it.k)&&canUse(u,it.k)&&itemSel!==eqIdx(u))ops+='<button class="go" type="button" data-act="equip">Equip</button>';if(IT[it.k].t==='item'&&(u.hp<u.maxhp||u.psn))ops+='<button class="go" type="button" data-act="use">Use</button>';if(IT[it.k].t==='scroll'){const r=learnBlock(u,IT[it.k].skill);ops+=r?`<span class="hint">${r}</span>`:`<button class="go" type="button" data-act="learn">Learn ${SKILLS[IT[it.k].skill].n} (${SKILLS[IT[it.k].skill].cost})</button>`}if(IT[it.k].t==='crest'){const r=promoBlock(u);ops+=r?`<span class="hint">${r}</span>`:`<button class="go" type="button" data-act="ascend">Ascend…</button>`}if(isWpn(it.k)&&!canUse(u,it.k))ops+=`<span class="hint">${u.name} can't wield this.</span>`}
     h=`<div class="ch"><b>${u.name}</b><span>Items · ${u.hp}/${u.maxhp} HP</span></div>`+itemRows(u,true)+`<div class="acts">${ops}<button type="button" data-act="menu">Back</button></div>`;
   }
   else if(ui==='target'){const gf=giftHere(u),tk=talkTarget(u);h=`<p class="hint">Tap a highlighted ${tmode==='heal'?'ally to heal':'enemy to see the forecast'}, then tap it again to ${tmode==='heal'?'heal':'attack'}.</p><div class="acts">${tk?'<button class="go" type="button" data-act="talk">Talk</button>':''}${gf?`<button class="go" type="button" data-act="gift">${gf.kind}</button>`:''}<button type="button" data-act="items">Items</button><button type="button" data-act="wait">Wait</button><button type="button" data-act="menu">Menu</button></div>`}
@@ -1399,8 +1477,8 @@ function saveOpts(){try{localStorage.setItem(OPTS,JSON.stringify(settings))}catc
 async function optionsMenu(fromTitle){
   for(;;){
     const row=(k,l,v)=>`<div class="opt"><span>${l}</span><button type="button" data-m="${k}" class="${v?'go':''}">${v?'On':'Off'}</button></div>`;
-    const m=await modal(`<h2>Options</h2>${row('anim','Battle animations',settings.anim)}${row('sound','Sound effects',settings.sound)}${row('tips','Tutorial tips',settings.tips)}${row('rewind','Rewind (3 per chapter)',settings.rewind)}${row('dev','Dev mode (testing)',settings.dev)}<button type="button" data-m="chart">Type chart</button><div class="mbtns">${fromTitle?'':'<button type="button" data-m="title">Back to title</button>'}<button class="go" type="button" data-m="close">Close</button></div>`);
-    if(m==='chart'){await typeChart();continue}if(m==='anim')settings.anim=!settings.anim;else if(m==='sound'){settings.sound=!settings.sound;sfx('select')}else if(m==='rewind'){settings.rewind=!settings.rewind;if(state)render()}else if(m==='tips'){settings.tips=!settings.tips;if(settings.tips)settings.seen=[]}else if(m==='dev'){settings.dev=!settings.dev;if(state)render()}
+    const m=await modal(`<h2>Options</h2>${row('anim','Battle animations',settings.anim)}${row('sound','Sound and music',settings.sound)}${row('tips','Tutorial tips',settings.tips)}${row('rewind','Rewind (3 per chapter)',settings.rewind)}${row('dev','Dev mode (testing)',settings.dev)}<button type="button" data-m="chart">Type chart</button><div class="mbtns">${fromTitle?'':'<button type="button" data-m="title">Back to title</button>'}<button class="go" type="button" data-m="close">Close</button></div>`);
+    if(m==='chart'){await typeChart();continue}if(m==='anim')settings.anim=!settings.anim;else if(m==='sound'){settings.sound=!settings.sound;sfx('select');const k=bgmKey;if(bgm)bgm.pause();bgm=null;bgmKey='';music(k)}else if(m==='rewind'){settings.rewind=!settings.rewind;if(state)render()}else if(m==='tips'){settings.tips=!settings.tips;if(settings.tips)settings.seen=[]}else if(m==='dev'){settings.dev=!settings.dev;if(state)render()}
     else if(m==='title'){saveGame();titleScreen();return}else return;
     saveOpts();
   }
@@ -1495,7 +1573,7 @@ async function act(a){
   if(a==='wait'){commit();finishAction();return}
   if(a==='learn'){const it=u.items[itemSel],k=IT[it.k].skill;if(learnBlock(u,k))return;(u.skills=u.skills||[]).push({id:k,src:'scroll'});u.items.splice(itemSel,1);itemSel=null;sfx('item');toast(`${u.name} learned ${SKILLS[k].n}`);saveGame();render();return}
   if(a==='ascend'){if(promoBlock(u))return;const to=await promoPick(u);if(!to){render();return}commit();u.items.splice(itemSel,1);itemSel=null;busy=true;clearSel();ui='idle';render();await ascend(u,to);busy=false;finishAction();return}
-  if(a==='use'){commit();const it=u.items[itemSel],amt=Math.min(IT[it.k].amt,u.maxhp-u.hp);u.hp+=amt;it.u--;if(it.u<=0)u.items.splice(itemSel,1);pop(u,'+'+amt,'heal');finishAction();return}
+  if(a==='use'){commit();const it=u.items[itemSel],amt=Math.min(IT[it.k].amt,u.maxhp-u.hp);u.hp+=amt;if(u.psn){u.psn=0;toast(`${u.name} is cured`)}it.u--;if(it.u<=0)u.items.splice(itemSel,1);pop(u,'+'+amt,'heal');finishAction();return}
   if(a==='gift'){commit();const g=giftHere(u),full=u.items.length>=5;state.visited.push(g.k);sfx('item');if(!full)u.items.push({k:g.item,u:IT[g.item].uses});clearSel();ui='idle';render();
     await modal(`<div class="itemget"><img src="${icon(g.item)}" alt=""><div class="eyebrow">${g.kind==='Visit'?'Received':'Found'}</div><h2>${IT[g.item].n}</h2><p>${full?`${u.name}'s inventory is full, so the item was left behind.`:`${u.name} obtained ${IT[g.item].n}.`}</p><p class="skd">${itemInfo(u,g.item).replace(/^<b>[^<]*<\/b> · /,'')}</p></div><div class="mbtns"><button class="go" type="button" data-m="ok">OK</button></div>`);
     finishAction();return}
@@ -1515,6 +1593,7 @@ async function fight(a,ai,d){
   for(const[u,i,n]of[[a,ai,res.used.a],[d,res.f.di,res.used.d]]){if(i<0||!n)continue;const it=u.items[i];it.u-=n;if(it.u<=0){u.items.splice(i,1);sfx('broke');toast(`${u.name}'s ${IT[it.k].n} broke`)}}
   for(const u of [a,d])if(u.turncoat&&u.team==='e'&&u.hp>0&&u.hp<=Math.ceil(u.maxhp/3)){u.team='p';u.turncoat=false;u.acted=true;state.freed=true;pop(u,'Freed!','heal');sfx('ding')}
   const p=a.team==='p'?a:d.team==='p'?d:null,o=p===a?d:a;
+  for(const e of res.ev)if(e.psn){const t=e.by==='a'?d:a;if(t.hp>0){t.psn=3;pop(t,'Poisoned','crit')}}
   for(const e of res.ev)if(e.stone){const t=e.by==='a'?d:a;if(t.hp>0&&!t.boss){t.stone=1;pop(t,'Stone!','crit');sfx('earth')}}
   if(p&&p.hp>0){const dealt=res.ev.some(e=>(e.by==='a')===(p===a)&&e.dmg>0);const g=gainExp(p,Math.min(100,Math.round(expFor(p,o,dealt,o.hp<=0)*(R('tome')?1.5:1))));await showExp(p,g);if(g&&g.gains)await levelUp(p,g)}
   if(p&&o.hp<=0&&p.hp>0&&R('fang')){const h=Math.min(5,p.maxhp-p.hp);if(h){p.hp+=h;pop(p,'+'+h,'heal')}}
@@ -1548,8 +1627,10 @@ function checkEnd(){if(over)return;const c=CH[state.ch];
   if(!state.units.some(u=>u.team==='p')){over='lose';render();loseScreen();return}
   if(c.goal==='duel'&&state.stage!==2&&!state.units.some(u=>u.id==='silas'&&u.team==='e')){stageTwo();return}
   if(goalWon()){over='win';render();winScreen()}}
-function spawnWaves(t){const w=CH[state.ch].waves;if(!w||!w[t])return;const taken=new Set(state.units.map(u=>key(u.x,u.y)));
-  for(const f of w[t]()){const p=freeNear(f.x,f.y,taken,f);f.x=p.x;f.y=p.y;taken.add(key(p.x,p.y));state.units.push(f)}render();toast('Enemy reinforcements!')}
+function spawnWaves(t){const w=CH[state.ch].waves;if(!w||!w[t])return;const bo=state.units.find(u=>u.boss&&u.team==='e'&&u.id==='boss');
+  const fs=typeof w[t]==='function'?w[t]():w[t].filter(d=>!d.ifBoss||bo).map((d,i)=>{const u=mkMon(d.c,d.lv);u.id=`w${t}_${i}`;u.x=d.ifBoss?bo.x:d.x;u.y=d.ifBoss?bo.y:d.y;return u});
+  if(!fs.length)return;const taken=new Set(state.units.map(u=>key(u.x,u.y)));
+  for(const f of fs){const p=freeNear(f.x,f.y,taken,f);f.x=p.x;f.y=p.y;taken.add(key(p.x,p.y));state.units.push(f)}render();toast(bo&&CH[state.ch].waves[t][0]?.ifBoss?`${bo.name} raises the dead!`:'Enemy reinforcements!')}
 async function stageTwo(){
   busy=true;const c=CH[state.ch];state.stage=2;render();await sleep(500);
   await playStory(STORY[state.ch]&&(state.freed?STORY[state.ch].freed:STORY[state.ch].mid));
@@ -1559,6 +1640,7 @@ async function stageTwo(){
   busy=false;render();banner('The party arrives','p');saveGame();
 }
 function phaseHeal(team){
+  for(const u of state.units)if(u.team===team&&u.psn>0){const d=Math.min(3,u.hp-1);if(d>0){u.hp-=d;pop(u,'-'+d,'crit')}u.psn--}
   for(const u of state.units)if(u.team===team&&ter(u.x,u.y).heal&&u.hp<u.maxhp){const a=Math.min(Math.ceil(u.maxhp*.1),u.maxhp-u.hp);u.hp+=a;pop(u,'+'+a,'heal')}
   for(const c of state.units.filter(u=>u.team===team&&has(u,'renewal')))for(const u of state.units)if(u.team===team&&u!==c&&man(u,c)===1&&u.hp<u.maxhp){const a=Math.min(5,u.maxhp-u.hp);u.hp+=a;pop(u,'+'+a,'heal')}
   if(team==='p'&&R('salvebag'))for(const u of state.units)if(u.team==='p'&&u.hp<u.maxhp){const a=Math.min(3,u.maxhp-u.hp);u.hp+=a;pop(u,'+'+a,'heal')}
@@ -1612,7 +1694,7 @@ function setMap(){MAP=CH[state.ch].map;MW=MAP[0].length;MH=MAP.length}
 function setupChapter(ci,roster){
   foeSeq=0;const c=CH[ci];setMapFor(ci);
   (c.join||[]).forEach(id=>{if(!roster.some(r=>r.id===id))roster.push(mkHero(heroDef(id)))});
-  let heroes=roster.map(h=>Object.assign(clone(h),{hp:h.maxhp,acted:false,stone:0}));
+  let heroes=roster.map(h=>Object.assign(clone(h),{hp:h.maxhp,acted:false,stone:0,psn:0}));
   const extra=[],fs=c.foes();let reserve=[],stage=2;
   if(c.goal==='duel'){const sl=heroes.find(h=>h.id==='silas');
     if(sl){heroes=heroes.filter(h=>h!==sl);reserve=heroes.filter(h=>!h.lord);heroes=heroes.filter(h=>h.lord);Object.assign(sl,{team:'e',x:c.duelist[0],y:c.duelist[1],turncoat:true});extra.push(sl);stage=1}
@@ -1629,6 +1711,7 @@ async function chapterIntro(){
   const c=CH[state.ch];
   await modal(`<div class="eyebrow">Act ${run.act||1} · Floor ${run.n} of ${RUN_LEN} · ${NODE_N[run.kind]||'Battle'}</div><h2>${c.title}</h2><p>${c.intro.replaceAll('{lord}',lordName())}</p><div class="lvl" style="grid-template-columns:1fr"><div><span style="color:var(--gold)">Goal</span><span>${goalText().replace(/<[^>]+>/g,' ').trim()}</span></div><div><span style="color:var(--red)">Lose</span><span>${loseText()}</span></div></div><div class="mbtns"><button class="go" type="button" data-m="go">Begin</button></div>`);
   banner('Player Phase','p');saveGame();
+  {const B=BIOMES[c.biome];if(B&&B.tip)tip(...B.tip)}
   if(state.ch===0)tip('basics','Moving your units','Tap a blue unit to see where it can go: blue tiles are moves, red tiles are what it can hit. Tap a tile to move there, or tap a red enemy to attack it straight away. Dead woods give +20 Avoid and +1 Def, so fight from the trees when you can.');
   if(state.ch===1)tip('defend','Hold the camp','You win by surviving: the goal counts the turns. Plug the gaps in the palisade, and expect new enemies every turn.');
   if(state.ch===2)tip('traps','Traps and gremlins','Some labyrinth tiles hide traps that hurt whoever steps on them. Sprung traps stay marked.');
@@ -1729,49 +1812,196 @@ Object.assign(FOE,{
   MinotaurM:{b:[24,8,0,3,2,0,5,0],g:[.8,.5,0,.25,.15,.05,.3,.05],items:['ironAxe'],look:{}}
 });
 function monLook(c){
+  if(MONLOOK[c])return MONLOOK[c]();
   if(c==='Wolf')return{fur:pick(['#8a8f9a','#6b5a48','#3a3640','#c9c3b8','#9a7a52']),eye:'#ffd23f'};
   if(c==='Harpy'){const wg=pick(['#6b5240','#55607a','#7a5a7a','#4a4a3a']);return{style:'wild',hair:pick(HAIRC),skin:pick(['#c9b6a0','#a9a3c0','#b8c4a8']),wing:wg,cloth:wg,eye:'#ffd23f'}}
   if(c==='LamiaM')return{style:pick(['long','tail','wild']),hair:pick(HAIRC),tail:pick(['#4f8a5a','#3a7a7a','#7a5aa0','#8a7a3a']),cloth:pick(CLOTH),skin:pick(['#d6c0a0','#b8c8a8','#c9b6a0']),eye:'#ffd23f'};
   if(c!=='MinotaurM')return clone(FOE[c].look||{});
   return{style:'bald',horns:true,beard:true,hair:'#2a1a14',skin:pick(['#7a4e32','#5a3a2a','#8a6a4a']),cloth:'#4a3a2a',eye:'#ff5a3a'};
 }
-function mkMon(c,lv){const u=foe(c,lv,0,0);u.look=monLook(c);if(c==='LamiaM')u.skill='stone';return u}
+function mkMon(c,lv){const u=foe(c,lv,0,0);u.look=monLook(c);
+  if(c==='LamiaM'||c==='Beholder')u.skill='stone';if(c==='Sporeling'||c==='Myconid')u.skill='spore';
+  if(c==='Skeleton'&&rand()<.35){u.items[0]={k:'shortBow',u:IT.shortBow.uses};u.name='Skeleton Archer'}
+  return u}
 
-/* ---- maps ---- */
+/* ================= REGIONS =================
+   Each act takes place in one region (picked from the run's seed). A region sets its maps, monster pool, boss,
+   terrain rule and music. Map letters for region terrain: , mycelium · q giant toadstool · ; grave soil · t tombstone
+   · s ankle-deep water (−1 Move next turn) · n sand · v mangrove roots · y cursed thicket · b basalt · l magma. */
+Object.assign(TER,{
+  ',':{n:'Mycelium',k:'myc',c:1,av:0,df:0},'q':{n:'Giant Toadstool',k:'shroom',c:2,av:20,df:1},
+  ';':{n:'Grave Soil',k:'grave',c:1,av:0,df:0},'t':{n:'Tombstone',k:'tomb',c:2,av:15,df:2},
+  's':{n:'Ankle-deep Water',k:'shallow',c:1,av:0,df:0,slow:true},'n':{n:'Sand',k:'sand',c:1,av:0,df:0},'v':{n:'Mangrove Roots',k:'mangrove',c:2,av:20,df:1,slow:true},
+  'y':{n:'Cursed Thicket',k:'curse',c:2,av:25,df:1},'b':{n:'Basalt',k:'basalt',c:1,av:0,df:0},'l':{n:'Magma',k:'lava',c:99,av:0,df:0}
+});
+function bioTile(k){
+  const p=Px(16,16),o=Px(16,16),dots=(c,pts)=>pts.forEach(([x,y])=>p.set(x,y,c)),S=[[2,3],[9,2],[13,6],[4,12],[11,13],[7,8],[14,11]];
+  if(k==='myc'||k==='shroom'){p.rect(0,0,16,16,'#4e4058');p.line(0,5,7,9,'#665576');p.line(7,9,16,6,'#665576');p.line(4,16,9,9,'#665576');p.line(11,0,12,7,'#5c4d6a');dots('#c9b8ff',[[3,3],[12,12],[8,13],[14,2]])}
+  if(k==='shroom'){o.rect(6,9,4,6,'#efe6cf');o.rect(6,9,1,6,'#cfc4aa');o.ell(8,7,7,4.5,'#d8483a',(x,y)=>y<=8);o.rect(2,8,12,1,'#a8302a');o.ell(5,5,1.3,1,'#fff');o.ell(10,4,1.5,1.1,'#fff');o.ell(12,7,1,1,'#fff')}
+  if(k==='grave'||k==='tomb'){p.rect(0,0,16,16,'#34303c');S.forEach(([x,y])=>{p.set(x,y,'#2a2630');p.set(x+1,y-1,'#47434f')})}
+  if(k==='tomb'){o.ell(8,5,4,3,'#8a8794',(x,y)=>y<=5);o.rect(4,5,8,9,'#8a8794');o.rect(4,13,8,2,'#5a5762');o.rect(7,6,2,5,'#5a5762');o.rect(5,7,6,2,'#5a5762');o.rect(4,5,1,8,'#6f6c78')}
+  if(k==='shallow'||k==='mangrove'){p.rect(0,0,16,16,'#3f5a4a');[[1,3],[8,6],[3,11],[11,12]].forEach(([x,y])=>p.line(x,y,x+3,y,'#5f7f6a'));p.set(13,3,'#7a9a6a');p.line(6,14,6,11,'#6a8a4a')}
+  if(k==='mangrove'){o.line(2,15,5,8,'#5a3a24',2);o.line(13,15,10,8,'#5a3a24',2);o.line(7,15,7,8,'#4a2e1c',2);o.ell(8,5,7,4.5,'#2f5a32');o.ell(5,4,3,2,'#3f7a42');o.ell(11,5,3,2,'#3f7a42')}
+  if(k==='sand'){p.rect(0,0,16,16,'#b8a070');dots('#a08858',S);dots('#d0bc8c',[[3,2],[10,1],[14,5],[5,11],[12,12]])}
+  if(k==='curse'){p.rect(0,0,16,16,'#3e4436');o.line(1,14,6,3,'#3a2a3a',2);o.line(14,14,9,2,'#3a2a3a',2);o.line(4,9,12,5,'#4a2e4a');o.line(3,6,13,11,'#4a2e4a');o.set(6,3,'#c77dff');o.set(9,2,'#c77dff');o.set(12,5,'#8a3a6a')}
+  if(k==='basalt'){p.rect(0,0,16,16,'#3a3034');p.line(2,4,6,7,'#2a2226');p.line(6,7,5,12,'#2a2226');p.line(10,2,13,9,'#2a2226');p.set(6,8,'#ff7a2a');p.set(12,6,'#c84a1a')}
+  if(k==='lava'){p.rect(0,0,16,16,'#c8401a');p.ell(5,5,3,2,'#ff9a2e');p.ell(11,11,3.5,2.5,'#ff9a2e');p.ell(5,5,1.2,.8,'#ffe14a');p.ell(11,11,1.5,1,'#ffe14a');p.line(0,9,7,9,'#7a2010');p.line(9,2,15,4,'#7a2010')}
+  o.outline('#1a1414');for(let i=0;i<256;i++)if(o.g[i])p.g[i]=o.g[i];
+  return p.url();
+}
+texStyle.textContent+=['myc','shroom','grave','tomb','shallow','mangrove','sand','curse','basalt','lava'].map(k=>`.t-${k}{background:url(${bioTile(k)}) 0 0/100% 100%}`).join('');
+
+/* ---- monsters ---- */
+IT.spores={n:'Spore Puff',t:'art',kind:'talisman',el:'nature',mt:3,hit:90,crit:0,r:[1,1],uses:99,mag:true,key:'spores'};
+IT.sporeCloud={n:'Spore Cloud',t:'art',kind:'talisman',el:'nature',mt:5,hit:85,crit:0,r:[1,2],uses:99,mag:true,key:'sporeCloud'};
+IT.slam={n:'Slam',t:'heavy',kind:'claw',mt:7,hit:75,crit:0,r:[1,1],uses:99,key:'slam'};
+IT.bite={n:'Bite',t:'heavy',kind:'claw',mt:9,hit:75,crit:10,r:[1,1],uses:99,key:'bite'};
+IT.antlers={n:'Antlers',t:'pole',kind:'claw',mt:6,hit:85,crit:5,r:[1,1],uses:99,key:'antlers'};
+IT.hooves={n:'Hooves',t:'blade',kind:'claw',mt:5,hit:90,crit:0,r:[1,1],uses:99,key:'hooves'};
+IT.breath={n:'Magma Breath',t:'art',kind:'talisman',el:'fire',mt:9,hit:80,crit:0,r:[1,2],uses:99,mag:true,key:'breath'};
+SKILLS.spore={n:'Poison Spores',cost:15,d:'On a hit, poisons the target: it loses 3 HP at the start of each of its turns for 3 turns (never below 1 HP).'};
+IT.scroll_spore={n:'Poison Spores Scroll',t:'scroll',kind:'scroll',skill:'spore',uses:1,key:'scroll_spore'};
+Object.assign(CLS,{
+  Sporeling:{n:'Sporeling',w:['art'],body:'shroom',mov:5},Myconid:{n:'Myconid',w:['art'],body:'shroom',mov:4},MorelKing:{n:'Mushroom King',w:['art'],body:'shroom',mov:0},
+  Skeleton:{n:'Skeleton',w:['blade','bow'],body:'vest',mov:5},Ghost:{n:'Ghost',w:['art'],body:'ghost',mov:5,phase:true},Necromancer:{n:'Necromancer',w:['art'],body:'robe',mov:0},
+  MudMonster:{n:'Mud Monster',w:['heavy'],body:'mud',mov:4,wade:true},Krondis:{n:'Alligator',w:['heavy'],body:'gator',mov:4,wade:true},
+  CursedStag:{n:'Cursed Stag',w:['pole'],body:'beast',mov:6},HollowStag:{n:'Hollow Stag',w:['pole'],body:'beast',mov:4},
+  Boulder:{n:'Boulder Golem',w:['heavy'],body:'golem',mov:4},FireSprite:{n:'Fire Sprite',w:['art'],body:'flame',mov:5,lava:true},MagmaDragon:{n:'Magma Dragon',w:['art','heavy'],body:'dragon',mov:0,lava:true},
+  WyvernM:{n:'Wyvern',w:['heavy'],body:'mount',mov:6,fly:true},PegasusM:{n:'Pegasus',w:['blade'],body:'mount',mov:7,fly:true},Tempest:{n:'Storm Elemental',w:['art'],body:'storm',mov:3,fly:true},
+  Beholder:{n:'Beholder',w:['art'],body:'eye',mov:4}
+});
+CLS.LamiaM.wade=true;
+Object.assign(FOE,{
+  Sporeling:{b:[14,0,4,4,6,4,2,3],g:[.5,0,.35,.3,.4,.3,.1,.2],items:['spores'],look:{}},
+  Myconid:{b:[20,0,5,3,2,2,4,5],g:[.7,0,.35,.25,.15,.1,.25,.25],items:['sporeCloud'],look:{}},
+  Skeleton:{b:[16,5,0,4,4,0,3,0],g:[.6,.4,0,.35,.3,0,.2,.05],items:['ironJian'],look:{}},
+  Ghost:{b:[15,0,5,4,6,2,1,5],g:[.5,0,.4,.3,.4,.15,.05,.35],items:['darkT'],look:{}},
+  MudMonster:{b:[26,6,0,2,1,0,6,0],g:[.9,.4,0,.2,.1,0,.3,0],items:['slam'],look:{}},
+  CursedStag:{b:[17,6,0,5,8,2,2,2],g:[.6,.4,0,.35,.45,.15,.1,.15],items:['antlers'],look:{}},
+  Boulder:{b:[24,7,0,2,1,0,10,0],g:[.8,.4,0,.2,.05,0,.4,0],items:['slam'],look:{}},
+  FireSprite:{b:[14,0,5,5,7,2,1,4],g:[.5,0,.4,.35,.45,.15,.05,.3],items:['flameT'],look:{}},
+  WyvernM:{b:[20,7,0,4,4,0,6,0],g:[.7,.45,0,.3,.25,.05,.3,.05],items:['bite'],look:{}},
+  PegasusM:{b:[16,4,2,6,8,4,2,6],g:[.55,.3,.1,.4,.45,.3,.1,.35],items:['hooves'],look:{}},
+  Beholder:{b:[20,0,6,6,3,2,4,6],g:[.6,0,.4,.35,.2,.1,.2,.3],items:['darkT'],look:{}}
+});
+const MONLOOK={
+  Sporeling:()=>({cap:pick(['#d8483a','#e8a23a','#c85aa8','#4a9ad8']),stem:'#efe6cf',small:true}),
+  Myconid:()=>({cap:pick(['#8a5a3a','#6a7a3a','#7a4a8a']),stem:'#d8ccb0'}),
+  Skeleton:()=>({skel:true,style:'bald',skin:'#e8e2d0',cloth:pick(['#3a3540','#4a3a2a','#2a3a3a']),eye:'#ff5a3a',gear:rand()<.4?'helm':undefined}),
+  Ghost:()=>({body:pick(['#d8e0f0','#c8e8e0','#e0d0f0']),eye:'#7fe3ff'}),
+  MudMonster:()=>({body:pick(['#5a4a32','#4a4a2a','#5a3a2a'])}),
+  CursedStag:()=>({fur:pick(['#4a3a4a','#5a4a3a','#3a3040']),eye:'#ff3a5a',antlers:'#d8d0bc'}),
+  Boulder:()=>({body:pick(['#7a746e','#6a625c','#8a8278']),eye:'#ff9a3c'}),
+  FireSprite:()=>({body:pick(['#ff8a3c','#ff6a2a','#ffaa3c'])}),
+  WyvernM:()=>({mount:'wyvern',horse:pick(['#4f7a4a','#5a4a7a','#7a4a3a','#3a5a6a'])}),
+  PegasusM:()=>({mount:'pegasus',horse:pick(['#f3f0e8','#e0e6f0','#3a3440'])}),
+  Beholder:()=>({body:pick(['#8a4a6a','#4a6a8a','#6a4a3a']),eye:pick(['#5fc2a0','#ffd23f','#ff5a3a'])})
+};
+const BIOMES={
+  mushroom:{n:'Mushroom Kingdom',bg:'#3a2a48',d:'Glowing mycelium and giant toadstools. The fungus folk are cheerful, and their spores poison on a hit.',
+    tip:['spores','Poison spores','Fungus attacks poison on a hit: 3 damage at the start of each of your turns for 3 turns. A Salve cures it.'],
+    maps:['glade','hollow','ring'],bossMap:'mushThrone',pool:[['Sporeling',4],['Myconid',2,2],['Mindsnail',1,3]],
+    boss:{name:'King Morel the Merry',cls:'MorelKing',s:[36,0,9,6,3,4,7,8],items:['sporeCloud'],skill:'spore',look:{cap:'#d8483a',stem:'#efe6cf',crown:true}}},
+  shadow:{n:'Shadow Kingdom',bg:'#24223a',d:'A haunted land of graves and crypts. Skeletons walk, and ghosts drift straight through walls.',
+    tip:['ghosts','Ghosts','Ghosts ignore terrain and can pass through walls. Their dark magic heals them for a quarter of the damage dealt.'],
+    maps:['graveyard','crypt','village'],bossMap:'chapel',pool:[['Skeleton',4],['Ghost',2,2],['Gloomwing',1,3]],
+    boss:{name:'Vaelith the Necromancer',cls:'Necromancer',s:[30,0,11,8,6,3,5,9],items:['darkT'],skill:'focus',summon:'Skeleton',look:{style:'long',gear:'hood',cloth:'#2a1e36',skin:'#b9c2cc',hair:'#e8e2d0',eye:'#c77dff'}}},
+  swamp:{n:'The Swamp',bg:'#22362c',d:'Mangrove roots and ankle-deep water. Wading costs 1 Move; the sand banks are solid ground.',
+    tip:['swamp','Ankle-deep water','A unit that starts its turn in the water or the mangrove roots has 1 less Move. Sand is solid ground. Fliers and swamp creatures ignore this.'],
+    maps:['flats','road','bog'],bossMap:'lair',pool:[['LamiaM',3],['MudMonster',2],['Wolf',1]],
+    boss:{name:'Krondis',cls:'Krondis',mov:4,s:[40,13,0,5,5,2,10,1],items:['bite'],skill:'fury',look:{body:'#4f6a3a',crown:true}}},
+  forest:{n:'Cursed Woodland',bg:'#26302a',d:'A dead forest under a curse. The deer here have gone wrong, and the wolves hunt in packs.',
+    tip:['woods','Cursed thickets','Cursed thickets give +25 Avoid and +1 Def, but cost 2 Move to enter. Stags are fast: keep your back line covered.'],
+    maps:['woodland','brook','clearing'],bossMap:'heart',pool:[['Wolf',4],['CursedStag',3],['Harpy',1,3]],
+    boss:{name:'The Hollow Stag',cls:'HollowStag',mov:4,s:[34,11,0,8,9,4,6,4],items:['antlers'],skill:'swift',look:{fur:'#2a2230',eye:'#ff3a5a',antlers:'#f3e6b0',big:true}}},
+  mountain:{n:'Magma Mountains',bg:'#3a2420',d:'Basalt slopes cut by rivers of magma. Golems block the passes, and fire sprites float over the lava.',
+    tip:['lava','Magma','Magma can’t be crossed on foot. Fliers and fire creatures move over it freely.'],
+    maps:['fields','caldera','ridge'],bossMap:'crater',pool:[['Boulder',3],['FireSprite',3],['Harpy',1,2]],
+    boss:{name:'Pyraxis, the Magma Dragon',cls:'MagmaDragon',s:[42,12,10,6,4,2,10,6],items:['breath'],skill:'brace',look:{body:'#5a2a22'}}},
+  ship:{n:'The Flying Ship',bg:'#26304a',d:'A sky-galleon under attack. Hold the deck while wyverns, pegasi and harpies dive from the clouds.',
+    tip:['ship','Defend the ship','Hold the deck until the turn count runs out; more fliers arrive every turn. Bows deal triple damage to fliers.'],
+    maps:['deck','galleon'],bossMap:'deck',pool:[['WyvernM',3],['PegasusM',2],['Harpy',2],['StormHarpy',1,3]],
+    boss:{name:'The Tempest',cls:'Tempest',mov:3,s:[32,0,12,8,8,3,5,8],items:['thunderT'],skill:'swift',look:{}}},
+  labyrinth:{n:'The Labyrinth',bg:'#2a2630',d:'Stone corridors with no daylight. Something with too many eyes watches from the dark.',
+    tip:['maze','The Labyrinth','Beholders can turn units to stone with their gaze. Stone units skip their next turn.'],
+    maps:['maze1','vaults','pillars'],bossMap:'mazeHeart',pool:[['Gremlin',3],['Beholder',2,2],['MinotaurM',2,3]],
+    boss:{name:'',cls:'MinotaurM',s:[34,12,0,6,4,2,9,2],items:['steelAxe'],skill:'fury',look:null}}
+};
+for(const k in BIOMES)BIOMES[k].id=k;
+const ACTS=2;
+const MUSIC={title:'music/title.mp3'};for(const k in BIOMES)MUSIC[k]=`music/${k}.mp3`;
+let bgm=null,bgmKey='';
+/* Background music: drop mp3s into music/ (title.mp3, mushroom.mp3, shadow.mp3, swamp.mp3, forest.mp3, mountain.mp3, ship.mp3, labyrinth.mp3). Missing files are skipped. */
+function music(k){if(k===bgmKey&&bgm)return;bgmKey=k;try{if(bgm)bgm.pause();bgm=null;if(!settings.sound||!MUSIC[k])return;bgm=new Audio(MUSIC[k]);bgm.loop=true;bgm.volume=.45;bgm.play().catch(()=>{})}catch(_){}}
+
 const MAPS={
-  ford:{n:'Ford',map:["mm.F..mm","m....f.m",".f....f.","..ww=w..","f.w..w.f","....f...",".f.mm...","......f.","ww=ww.ww","..f....C","F......f"],start:[[3,10],[4,9],[2,9],[4,10],[6,9],[0,9]]},
-  stockade:{n:'Stockade',map:["f..m..f...m.",".f.....f..f.","..###__###..","..#A____A#..","f.#______#.f","..#__F____..","..___A__A#..","f.#______#.f","..#A____C#..","..########..",".f..m..f..f.","...f....m..."],start:[[4,4],[5,4],[6,4],[4,6],[6,6],[7,4]]},
+  /* Mushroom Kingdom */
+  glade:{n:'Glowcap Glade',map:["q,,,,q,,,,,q",",,q,,,,,qq,,",",,,,,,,,q,,,",",qq,,,F,,,,,",",,,,,,,,,,q,",",,,,q,,,,,,,","q,,,qq,,,,q,",",,,,,,,,,,,,",",,q,,,,,q,,,",",,,,,,,,,,,q","q,,,,,,,,,,,"],start:[[5,10],[6,10],[4,10],[7,10],[5,9],[6,9]]},
+  hollow:{n:'Spore Hollow',map:[",,q,,,,,,q,,",",,,,,qq,,,,,","q,,,,,,,,,,q","www=wwwww=ww",",,,,,,,,,,,,",",q,,,,q,,,,,",",,,,,,,,,q,,",",,,q,,,,,,,,",",,,,,,F,,,,,","q,,,,,,,,,,q",",,,,,,,,,,,,"],start:[[5,10],[6,10],[4,10],[7,10],[5,9],[6,9]]},
+  ring:{n:'Fairy Ring',map:[",,,,,,,,,,,,",",,,qqqqqq,,,",",,qq,,,,qq,,",",,q,,,,,,q,,",",,q,,F,,,q,,",",,q,,,,,,q,,",",,qq,,,,qq,,",",,,qqq,,qq,,",",,,,,,,,,,,,",",q,,,,,,,,q,",",,,,,,,,,,,,"],start:[[5,10],[6,10],[4,10],[7,10],[5,9],[6,9]]},
+  mushThrone:{n:'Mushroom Throne',map:["qqq,,,,,,qqq","qq,,,,T,,,qq","q,,,,,,,,,,q",",,,q,,,,q,,,",",,,,,,,,,,,,",",q,,,,,,,,q,",",,,,q,,q,,,,",",,,,,,,,,,,,","q,,,,,,,,,,q",",,,,,,,,,,,,",",,,,,,,,,,,,"],start:[[5,10],[6,10],[4,10],[7,10],[5,9],[6,9]]},
+  /* Shadow Kingdom */
+  graveyard:{n:'Graveyard',map:["f;;;t;;t;;;f",";;t;;;;;;t;;",";;;;;t;;;;;;",";t;;;;;;;;t;",";;;;t;;t;;;;",";;;;;;;;;;;;",";t;;;;;;;;t;",";;;;t;;t;;;;",";;;;;;;;;;;;","f;;;;;;;;;;f",";;;;;;;;;;;;"],start:[[5,10],[6,10],[4,10],[7,10],[5,9],[6,9]]},
+  crypt:{n:'Crypt',map:["############","#__#____#__#","#__#____#__#","#__________#","###_####_###","#____##____#","#_t______t_#","#____F_____#","###_####_###","#__________#","#__________#","############"],start:[[5,10],[6,10],[4,10],[7,10],[5,9],[6,9]]},
+  village:{n:'Haunted Village',map:[";;;;f;;;;f;;",";V;;;;;;V;;;",";;;;t;;;;;;;",";;f;;;;;;f;;",";;;;;__;;;;;",";V;;__F__;V;",";;;;;__;;;;;",";;f;;;;;;f;;",";;;;t;;t;;;;",";;;;;;;;;;;;",";;;;;;;;;;;;"],start:[[5,10],[6,10],[4,10],[7,10],[5,9],[6,9]]},
+  chapel:{n:'Bone Chapel',map:["#############","#L___rTr___L#","#_t__rrr__t_#","#____rrr____#","#_#__rrr__#_#","#____rrr____#","#_t__rrr__t_#","#____rrr____#","#_#__rrr__#_#","#____rrr____#","#L___rrr___L#","#####___#####"],start:[[5,11],[6,11],[7,11],[5,10],[6,10],[7,10]]},
+  /* Swamp */
+  flats:{n:'Mangrove Flats',map:["ssvsssssvsss","ssssnnssssvs","svssnnsswwss","sssssssswwss","sssvssssssss","nnssssvsssnn","nnssssssssnn","sssswwssssss","svsswwssvsss","ssssssnnssss","sssssnnnssss"],start:[[5,10],[6,10],[7,10],[6,9],[7,9],[4,10]]},
+  road:{n:'Sunken Road',map:["wwsssvsssww","wssnnnnnssw","ssvnsssnvss","ssnnsvsnnss","ssnsssssnss","vsnssssssnv","ssnnsssnnss","ssvnnnnnvss","wsssnnnsssw","wwsssnsssww","sssssnsssss"],start:[[5,10],[4,10],[6,10],[5,9],[4,8],[6,8]]},
+  bog:{n:'Bog Pools',map:["sssswwwwssss","svsswwwwssvs","sssssnnsssss","wwsssnnssssw","wwssvssvssww","ssssssssssss","snnsswwssnns","snnsswwssnns","ssvssssssvss","ssssnnnnssss","sssssnnsssss"],start:[[5,10],[6,10],[4,9],[5,9],[6,9],[7,9]]},
+  lair:{n:'Krondis’s Lair',map:["wwwwsnnswwww","wwssnnnnssww","wsssnnTnnssw","wssvssssvssw","ssssssssssss","svsswwwwssvs","sssswwwwssss","ssnnssssnnss","vsnnssssnnsv","ssssnnnnssss","sssssnnsssss"],start:[[5,10],[6,10],[4,9],[5,9],[6,9],[7,9]]},
+  /* Cursed Woodland */
+  woodland:{n:'Cursed Woodland',map:["fyf..f..fyff","f...y..f...f","..f....y..f.",".y..f.....y.","...f..f.....","f.....y..f.f","..y.f.....y.",".f......f...","...y..f..y..",".f..........","............"],start:[[5,10],[6,10],[4,10],[7,10],[5,9],[6,9]]},
+  brook:{n:'Black Brook',map:["f..y.f..f..y","..f....y....",".y..ff....f.","....f..y....","ww=wwwwww=ww","....y..f....",".f.....f..y.","...f......f.",".y....y.....","....f....f..","............"],start:[[5,10],[6,10],[4,10],[7,10],[5,9],[6,9]]},
+  clearing:{n:'Hunter’s Clearing',map:["yyff..ffyyff","yf........fy","f..f....f..f","...........f",".f...F.....y",".....y......","f.........f.","y..f....f..y","f..........f","............","............"],start:[[5,10],[6,10],[4,10],[7,10],[5,9],[6,9]]},
+  heart:{n:'The Hollow Heart',map:["yyyfff.fffyy","yf..f.T.f.fy","f..y.....y.f","f....f.f...f","...y.....y..",".f...y.y..f.","...f.....f..",".y.........y","f...f...f..f","............","............"],start:[[5,10],[6,10],[4,10],[7,10],[5,9],[6,9]]},
+  /* Magma Mountains */
+  fields:{n:'Magma Fields',map:["bbmbllbbbmbb","bbbbllbbbbRb","bmbbbllbbbbb","bbbbbbllbmbb","RbbbbbblbbbR","bbmbbbbbbbbb","bbbllbbbmbbb","bbbblllbbbbb","bmbbbbbbbbmb","bbbbbbbbbbbb","bbbbbbbbbbbb"],start:[[5,10],[6,10],[4,10],[7,10],[5,9],[6,9]]},
+  caldera:{n:'Caldera Pass',map:["RRbbbbbbbbRR","RbbmbllbmbbR","bbbbllllbbbb","bmbbllllbbmb","bbbbbllbbbbb","lbbbbbbbbbbl","llbbmbbmbbll","lbbbbbbbbbbl","bbmbbbbbbmbb","bbbbbFbbbbbb","bbbbbbbbbbbb"],start:[[5,10],[6,10],[4,10],[7,10],[4,9],[6,9]]},
+  ridge:{n:'Rockslide Ridge',map:["bbbmRRRmbbbb","bbbbbRbbbbmb","bmbbbbbbbbbb","bbbRbbbbRbbb","bbbRRbbRRbbb","lbbbbbbbbbbl","llbbbmbbbbll","bbbbbbbbmbbb","bmbbRbbbbbbb","bbbbbbbbbbbb","bbbbbbbbbbbb"],start:[[5,10],[6,10],[4,10],[7,10],[5,9],[6,9]]},
+  crater:{n:'Dragon’s Crater',map:["llllbbbbllll","lllbbbTbblll","llbbbbbbbbll","lbbmbbbbmbbl","lbbbbllbbbbl","bbbbllllbbbb","bbbbbllbbbbb","bbmbbbbbbmbb","lbbbbbbbbbbl","bbbbbbbbbbbb","bbbbbbbbbbbb"],start:[[5,10],[6,10],[4,10],[7,10],[5,9],[6,9]]},
+  /* The Flying Ship */
+  deck:{n:'Main Deck',map:["~~~~~~~~~~~","~~~~~d~~~~~","~~~~ddd~~~~","~~~ddddd~~~","~~~ddMdd~~~","~~ddddddd~~","~~ddddddd~~","~~dddMddd~~","~~ddddddd~~","~~ddddddd~~","~~dddMddd~~","~~ddddddd~~","~~~ddHdd~~~","~~~~ddd~~~~","~~~~~~~~~~~"],start:[[5,9],[4,9],[6,9],[3,8],[7,8],[4,11]]},
+  galleon:{n:'Galleon Deck',map:["~~~~~~~~~~~~~","~~~~~~d~~~~~~","~~~~~ddd~~~~~","~~~~ddddd~~~~","~~~dddMddd~~~","~~ddddddddd~~","~~ddddddddd~~","~~dddMdMddd~~","~~ddddddddd~~","~~ddddddddd~~","~~~ddddddd~~~","~~~~ddHdd~~~~","~~~~~~~~~~~~~"],start:[[6,9],[5,9],[7,9],[4,8],[8,8],[6,10]]},
+  /* The Labyrinth */
+  maze1:{n:'Labyrinth',map:["#############","#C____X__#_C#","#_##_###C#_##","#___#___#___#","###_#_C_#_#_#","#___#___#_#_#","#_#####_###_#","#_m___#___F_#","#_###_#_###_#","#___#_m_#___#","#_#_#####_#_#","#C#___#___#C#","#_###___###_#","#_____#_____#","#############"],start:[[6,12],[5,12],[7,12],[5,13],[7,13],[4,13]]},
   vaults:{n:'Vaults',map:["##############","#C__#C_C_#__C#","#___#____#___#","##_###__###_##","#____________#","#_##_m__m_##_#","#_#C______C#_#","#_##_m__m_##_#","#____________#","##_###__###_##","#C__#____#__C#","#___#_F__#___#","##############"],start:[[6,10],[5,10],[7,10],[8,10],[5,11],[6,11]]},
-  meadow:{n:'Meadow',map:["..f....m..f.",".f..ff.....f","....f...m...","m.......f...","..ww=ww.....","..w....w..f.",".f..........","....m...f...",".f.......f..","....f.F....."],start:[[5,9],[4,9],[7,9],[5,8],[3,8],[8,8]]},
-  thicket:{n:'Thicket',map:["m..f...f..m","..f..m..f..",".f...f...f.","...m...m...","f....F....f","..f.....f..","...m.f.m...",".f.......f.","..f..m..f..","...........","m..f...f..m"],start:[[5,10],[4,9],[6,9],[3,10],[7,10],[5,8]]},
-  labyrinth:{n:'Labyrinth',map:["#############","#C____X__#_C#","#_##_###C#_##","#___#___#___#","###_#_C_#_#_#","#___#___#_#_#","#_#####_###_#","#_m___#___F_#","#_###_#_###_#","#___#_m_#___#","#_#_#####_#_#","#C#___#___#C#","#_###___###_#","#_____#_____#","#############"],start:[[6,12],[5,12],[7,12],[5,13],[7,13],[4,13]]},
-  palace:{n:'Serpent Palace',map:["#############","#L___rTr___L#","#_#__rrr__#_#","#____rrr____#","#_#__rrr__#_#","#____rrr____#","#_#__rrr__#_#","#____rrr____#","#_#__rrr__#_#","#____rrr____#","#_#__rrr__#_#","#L___rrr___L#","#####___#####"],start:[[6,11],[5,11],[7,11],[5,10],[7,10],[4,11]]},
-  maze:{n:'Labyrinth Heart',map:["#############","###_______###","##___#_#___##","#__m_____m__#","#_#___T___#_#","#___#___#___#","#__m_____m__#","##_#_____#_##","#____m_m____#","##__#___#__##","###___F___###","####_____####","#############"],start:[[6,11],[5,11],[7,11],[4,11],[8,11],[6,10]]}
+  pillars:{n:'Hall of Pillars',map:["#############","#___#___#___#","#_m_______m_#","#___#_#_#___#","##_##___##_##","#_____F_____#","##_##___##_##","#___#_#_#___#","#_m_______m_#","#___#___#___#","#####___#####","#___________#","#############"],start:[[5,11],[6,11],[7,11],[4,11],[8,11],[6,10]]},
+  mazeHeart:{n:'Labyrinth Heart',map:["#############","###_______###","##___#_#___##","#__m_____m__#","#_#___T___#_#","#___#___#___#","#__m_____m__#","##_#_____#_##","#____m_m____#","##__#___#__##","###___F___###","####_____####","#############"],start:[[6,11],[5,11],[7,11],[4,11],[8,11],[6,10]]}
 };
 const ADJ=['Howling','Silent','Broken','Ashen','Bitter','Hollow','Moonlit','Drowned'];
 function spawnTiles(m){
   const out=[];for(let y=0;y<m.map.length;y++)for(let x=0;x<m.map[0].length;x++){const t=TER[m.map[y][x]];if(t.c>=99)continue;const d=Math.min(...m.start.map(([sx,sy])=>Math.abs(sx-x)+Math.abs(sy-y)));if(d>=4)out.push({x,y,d})}
-  for(let i=out.length-1;i>0;i--){const j=Math.floor(rand()*(i+1));[out[i],out[j]]=[out[j],out[i]]}
-  return out;
+  return shuffle(out);
 }
+/* sky tiles along the map's edge, for fliers diving in */
+function skyEdge(m){const out=[],H=m.map.length,W=m.map[0].length;for(let y=0;y<H;y++)for(let x=0;x<W;x++)if((x===0||y===0||x===W-1||y===H-1)&&m.map[y][x]==='~'&&y<H-3)out.push({x,y});return shuffle(out)}
+function actBiome(){const a=run&&run.act||1;return BIOMES[(run&&run.biomes&&run.biomes[a-1])||'forest']}
 function genBattle(n,kind){
-  const act=run&&run.act||1,bossFight=kind==='boss',elite=kind==='elite',mk=bossFight?(act===2?'palace':'maze'):pick(act===2?['ford','stockade','vaults','meadow','thicket','labyrinth']:['ford','stockade','vaults','meadow','thicket']),m=MAPS[mk];
-  /* n = which fight of the run this is (1-4 on any path, boss after), so enemies keep pace with the squad */
-  const lvBase=n,pool=act===2?[['Wolf',2],['Harpy',2],['LamiaM',2],['MinotaurM',2],['Gremlin',2],['Gloomwing',1],['Mindsnail',1],['StormHarpy',1]]:[['Wolf',3],['Harpy',2],['LamiaM',n>=2?2:0],['MinotaurM',n>=3?1:0]],tot=pool.reduce((a,p)=>a+p[1],0);
-  const roll=()=>{let r=rand()*tot;for(const[c,w]of pool){if((r-=w)<0)return c}return'Wolf'};
-  const count=bossFight?(act===2?7:6):Math.min(act===2?7:6,2+n),list=[];
+  const act=run&&run.act||1,B=actBiome(),bossFight=kind==='boss',elite=kind==='elite',ship=B.id==='ship';
+  const mk=bossFight?B.bossMap:pick(B.maps),m=MAPS[mk];
+  /* n = which fight of the run this is, so enemies keep pace with the squad */
+  const lvBase=n,pool=B.pool.filter(p=>n>=(p[2]||1)),tot=pool.reduce((a,p)=>a+p[1],0);
+  const roll=()=>{let r=rand()*tot;for(const[c,w]of pool){if((r-=w)<0)return c}return pool[0][0]};
+  const count=bossFight?(act>=2?5:4):Math.min(act>=2?7:6,(ship?1:2)+n),list=[];
   while(list.length<count){const c=roll();list.push(c);if(c==='Wolf'&&list.length<count&&rand()<.6)list.push('Wolf')}
-  const bossName=act===2?pick(['Sethra','Vashka','Ilsiss','Medrae'])+', the Lamia Queen':pick(BOSSN)+' '+pick(BOSST);
-  const def={title:bossFight?(act===2?'The Serpent Throne':'The Labyrinth Heart'):`The ${pick(ADJ)} ${m.n}`+(elite?' (Elite)':''),goal:bossFight?'boss':'rout',map:m.map,start:m.start,gifts:{},
-    intro:bossFight?(act===2?`${bossName} rules from her throne. Her gaze turns warriors to stone. End her reign to finish the march.`:`${bossName} waits at the centre of the maze. Bring it down to end the act.`):elite?`A pack led by something old and strong holds the ${m.n.toLowerCase()}. Rout them all.`:`${count} monsters prowl the ${m.n.toLowerCase()}. Rout them.`};
+  const bossName=B.boss.name||pick(BOSSN)+' '+pick(BOSST),turns=ship&&!bossFight?(elite?6:5):0;
+  const goal=bossFight?'boss':ship?'defend':'rout';
+  const def={biome:B.id,title:bossFight?m.n:`The ${pick(ADJ)} ${m.n}`+(elite?' (Elite)':''),goal,turns,map:m.map,start:m.start,gifts:{},
+    intro:bossFight?`${bossName} waits for you in the ${m.n}. Defeat it to clear the ${B.n}.`:ship?`Fliers are diving on the ship. Hold the deck for ${turns} turns.`:elite?`A pack led by something old and strong holds the ${m.n.toLowerCase()}. Rout them all.`:`${count} monsters wait in the ${m.n.toLowerCase()}. Rout them.`};
   def.foes=()=>{const tiles=spawnTiles(m),out=[];
     list.forEach((c,i)=>{const lv=Math.max(1,lvBase+(rand()<.3?1:0)-(c==='Wolf'?1:0)+(elite?1:0)),u=mkMon(c,lv),t=tiles[i%tiles.length];u.x=t.x;u.y=t.y;
-      if(elite&&i===0){u.name='Elder '+u.name;u.boss=true;ST.forEach(k=>{if(k==='hp'){u.maxhp+=6;u.hp+=6}else u[k]+=2});u.skill=pick(['fury','brace','swift','shieldwall'])}
+      if(elite&&i===0){u.name='Elder '+u.name;u.boss=true;ST.forEach(k=>{if(k==='hp'){u.maxhp+=6;u.hp+=6}else u[k]+=2});u.skill=u.skill||pick(['fury','brace','swift','shieldwall'])}
       if(rand()<.2){const k=pick(['qiPill','qiPill','steelJian','steelAxe','steelSpear','steelBow']);u.items.push({k,u:IT[k].uses,d:true})}out.push(u)});
-    if(bossFight){let bx=6,by=4;m.map.forEach((r,y)=>{const x=r.indexOf('T');if(x>=0){bx=x;by=y}});
-      out.push(act===2?boss({id:'boss',name:bossName,cls:'Gorgon',lv:12,x:bx,y:by,s:[46,11,11,10,9,5,10,10],items:['steelSpear','natureT'],skill:'stone',look:Object.assign(monLook('LamiaM'),{cloth:'#b8912f',tail:'#3a7a7a',gear:'guan'})})
-        :boss({id:'boss',name:bossName,cls:'MinotaurM',lv:6,x:bx,y:by,s:[34,12,0,6,4,2,9,2],items:['steelAxe'],skill:'fury',look:monLook('MinotaurM')}))}
+    if(bossFight){let bx=6,by=3;m.map.forEach((r,y)=>{const x=r.indexOf('T');if(x>=0){bx=x;by=y}});
+      const b=B.boss,up=[10,3,3,3,2,2,3,3].map(v=>v*(act-1));
+      out.push(boss({id:'boss',name:bossName,cls:b.cls,lv:6+6*(act-1),mov:b.mov||0,x:bx,y:by,s:b.s.map((v,i)=>v+up[i]),items:b.items,skill:b.skill,look:b.look?clone(b.look):monLook(b.cls)}))}
     return out};
+  /* reinforcements are plain data so they survive a save: {turn:[{c,lv,x,y,ifBoss}]} */
+  const W={};
+  if(ship){const edge=skyEdge(m),fl=pool.map(p=>p[0]);let e=0;for(let t=2;t<=(bossFight?6:turns);t++)W[t]=Array.from({length:1+(t%2===0?1:0)+(act>=2?1:0)},()=>({c:pick(fl),lv:Math.max(1,lvBase-1),...edge[(e++)%edge.length]}))}
+  if(bossFight&&B.boss.summon)for(const t of[3,5,7,9])W[t]=[{c:B.boss.summon,lv:lvBase,x:6,y:3,ifBoss:1},{c:B.boss.summon,lv:lvBase,x:6,y:3,ifBoss:1}];
+  if(Object.keys(W).length)def.waves=W;
   return def;
 }
 
@@ -1864,8 +2094,9 @@ function chestArt(){const p=Px(16,16);p.rect(2,6,12,8,BROWN);p.ell(8,6,6,3,BROWN
 function eventArt(){const p=Px(16,16);p.ell(8,8,6.5,6.5,'#6a4a8a');p.line(6,5,8,4,'#f3dc9a',2);p.line(9,4,10,6,'#f3dc9a',2);p.line(10,7,8,9,'#f3dc9a',2);p.rect(7,10,2,1,'#f3dc9a');p.rect(7,12,2,2,'#f3dc9a');p.outline(OUT);return p.url()}
 const RUN_LEN=ROWS+1;
 const NODE_IC={};
-function nodeIcon(t){return NODE_IC[t]||(NODE_IC[t]=t==='battle'?icon('ironJian'):t==='elite'?icon('moonDao'):t==='rest'?campArt():t==='treasure'?chestArt():t==='event'?eventArt():
-  t==='recruit'?fig({style:'short',hair:'#6b4226',cloth:'#3a7cc0'},'Heir','p','idle',null):fig(monLook('MinotaurM'),'MinotaurM','e','idle','ironAxe'))}
+function nodeIcon(t){if(t==='boss')return bossIcon();return NODE_IC[t]||(NODE_IC[t]=t==='battle'?icon('ironJian'):t==='elite'?icon('moonDao'):t==='rest'?campArt():t==='treasure'?chestArt():t==='event'?eventArt():
+  t==='recruit'?fig({style:'short',hair:'#6b4226',cloth:'#3a7cc0'},'Heir','p','idle',null):bossIcon())}
+function bossIcon(){const B=actBiome(),k='boss:'+B.id;if(NODE_IC[k])return NODE_IC[k];const s=rngS,L=B.boss.look?clone(B.boss.look):monLook(B.boss.cls);rngS=s;return NODE_IC[k]=fig(L,B.boss.cls,'e','idle',B.boss.items[0])}
 function reachable(){const M=run.map.rows;if(!run.pos)return M[0].map((_,i)=>({r:0,i}));const n=M[run.pos.r][run.pos.i];return run.pos.r+1<M.length?n.next.map(i=>({r:run.pos.r+1,i})):[]}
 const mapEl=document.createElement('div');mapEl.className='nmap';mapEl.hidden=true;document.body.appendChild(mapEl);
 function mapScreen(){
@@ -1875,12 +2106,12 @@ function mapScreen(){
     lines+=`<line x1="${n.x}" y1="${Y(r)}" x2="${m.x}" y2="${Y(r+1)}" stroke="${walked?'#d8b15a':'#5a5466'}" stroke-width="${walked?2.5:1.5}" stroke-dasharray="${walked?'':'3 4'}" vector-effect="non-scaling-stroke"/>`})));
   const nodes=M.map((row,r)=>row.map((n,i)=>{const cur=run.pos&&run.pos.r===r&&run.pos.i===i,c=['nd','n-'+n.t,isOk(r,i)?'ok':'',vis.has(r+','+i)?'vis':'',cur?'cur':''].join(' ');
     return`<button type="button" class="${c}" style="left:${n.x}%;top:${Y(r)}px" data-n="${r},${i}" ${isOk(r,i)?'':'tabindex="-1"'} aria-label="${NODE_N[n.t]}"><img src="${nodeIcon(n.t)}" alt=""></button>`}).join('')).join('');
-  mapEl.innerHTML=`<div class="nm-head"><div class="eyebrow">Act ${run.act||1} of 2 · Seed ${run.seed} · <span class="ess">${run.ess||0} Essence</span></div><h2>Choose your path</h2></div>
+  mapEl.innerHTML=`<div class="nm-head"><div class="eyebrow">Act ${run.act||1} of ${ACTS} · Seed ${run.seed} · <span class="ess">${run.ess||0} Essence</span></div><h2>${actBiome().n}</h2></div>
     <div class="nm-scroll"><div class="nm-board" style="height:${H}px"><svg viewBox="0 0 100 ${H}" preserveAspectRatio="none" width="100%" height="${H}">${lines}</svg>${nodes}</div></div>
     ${(run.relics||[]).length?`<div class="nm-relics">${run.relics.map(k=>`<button type="button" class="rl" data-rel="${k}" aria-label="${RELICS[k].n}"><img src="${relicArt(k)}" alt=""></button>`).join('')}</div>`:''}
     <div class="nm-info">Tap a glowing node.</div>
     <div class="nm-squad">${run.roster.map(u=>`<div><img src="${uSpr(u)}" alt=""><span>${u.name}</span><small>Lv ${u.lv}</small></div>`).join('')}</div>`;
-  mapEl.hidden=false;
+  mapEl.hidden=false;mapEl.style.background=`radial-gradient(ellipse at 50% 0%,${actBiome().bg},#121018 72%)`;
   const sc=mapEl.querySelector('.nm-scroll'),focus=ok[0]?Y(ok[0].r):H;sc.scrollTop=Math.max(0,focus-sc.clientHeight/2);
   return new Promise(res=>{let sel=null;mapEl.onclick=e=>{
     const rl=e.target.closest('[data-rel]');if(rl){const X=RELICS[rl.dataset.rel];mapEl.querySelector('.nm-info').innerHTML=`<b>${X.n}.</b> ${X.d}`;return}
@@ -1896,7 +2127,7 @@ async function restNode(){
   if(m==='skip')return;const u=run.roster[+m.slice(1)],g=gainExp(u,100);if(g&&g.gains)await levelUp(u,g);
 }
 async function mapStep(){
-  run.phase='map';saveGame();
+  run.phase='map';saveGame();music(actBiome().id);
   const pos=await mapScreen(),N=run.map.rows[pos.r][pos.i];
   run.pos=pos;(run.path=run.path||[]).push(pos);run.n=pos.r+1;run.kind=N.t;
   if(N.t==='recruit'){await recruitNode();return mapStep()}
@@ -2083,11 +2314,11 @@ async function promoPick(u){
 /* ---- flow ---- */
 async function beginBattle(){
   run.fights=(run.fights||0)+1;const def=genBattle(run.fights,run.kind);CH.length=0;CH.push(def);
-  setupChapter(0,run.roster);rewinds=3;saveGame();await chapterIntro();
+  setupChapter(0,run.roster);rewinds=3;saveGame();music(def.biome);await chapterIntro();
 }
 async function newRun(){
   const seed=(Date.now()^Math.floor(Math.random()*1e9))>>>0;seedRng(seed);
-  run={seed,n:0,uid:1,roster:[],pos:null,path:[],act:1,relics:[],ess:0,rr:{}};
+  run={seed,n:0,uid:1,roster:[],pos:null,path:[],act:1,relics:[],ess:0,rr:{}};run.biomes=shuffle(Object.keys(BIOMES)).slice(0,ACTS);
   const opts=Array.from({length:unl('draft6')?6:5},()=>genUnit(unl('veterans')?2:1));
   const squad=await draftPick(opts,3);if(!squad)return false;
   run.roster=squad;titleEl.hidden=true;
@@ -2095,6 +2326,7 @@ async function newRun(){
   run.map=genMap();await mapStep();return true;
 }
 async function titleScreen(){
+  music('title');
   for(;;){
     const sv=loadGame(),items=[];
     if(sv&&sv.run)items.push(['cont','Continue']);
@@ -2110,16 +2342,16 @@ async function winScreen(){
   await sleep(600);
   const survivors=state.units.filter(u=>u.team==='p'),fallen=chStart.units.filter(s=>s.team==='p'&&!survivors.some(u=>u.id===s.id));
   run.roster=survivors.map(u=>{const r=clone(u);r.hp=r.maxhp;r.acted=false;r.stone=0;return r});
-  const bossWin=run.kind==='boss',final=bossWin&&(run.act||1)>=2,gain=bossWin?20:run.kind==='elite'?8:4,rw=battleRewards();
+  const bossWin=run.kind==='boss',final=bossWin&&(run.act||1)>=ACTS,gain=bossWin?20:run.kind==='elite'?8:4,rw=battleRewards();
   run.ess=(run.ess||0)+gain+(final?20:0);
   const ro=survivors.map(u=>`<div><img src="${portrait(u)}" alt="">${u.name}<span class="hint">Lv ${u.lv}</span></div>`).join('')+fallen.map(u=>`<div class="dead"><img src="${portrait(u)}" alt="">${u.name}<span class="hint">Fallen</span></div>`).join('');
-  await modal(`<div class="eyebrow">Act ${run.act||1} · Floor ${run.n} of ${RUN_LEN} won · Turn ${state.turn}</div><h2>${CH[0].title}</h2><p>${final?'The march is complete.':bossWin?'Act 1 is complete. The road leads on to the Serpent Palace.':'Survivors heal fully before the next room.'}</p><div class="roster">${ro}</div><p>${rw.length?`Found: ${rw.join(', ')}. `:''}<span class="ess">+${gain+(final?20:0)} Essence</span></p><div class="mbtns"><button class="go" type="button" data-m="next">${final?'Finish':'March on'}</button></div>`);
+  await modal(`<div class="eyebrow">Act ${run.act||1} · Floor ${run.n} of ${RUN_LEN} won · Turn ${state.turn}</div><h2>${CH[0].title}</h2><p>${final?'The march is complete.':bossWin?`The ${actBiome().n} is cleared. The road leads on to the ${BIOMES[run.biomes[run.act]].n}.`:'Survivors heal fully before the next room.'}</p><div class="roster">${ro}</div><p>${rw.length?`Found: ${rw.join(', ')}. `:''}<span class="ess">+${gain+(final?20:0)} Essence</span></p><div class="mbtns"><button class="go" type="button" data-m="next">${final?'Finish':'March on'}</button></div>`);
   if(run.kind==='elite')await relicPick(2,['c','u'],'The elite’s spoils','Take one relic. It lasts for the rest of the run.');
   if(bossWin&&!final)await relicPick(3,['u','r'],'The boss’s hoard','Take one relic. It lasts for the rest of the run.');
   if(final){const got=bankEssence(true);await modal(`<div class="eyebrow">Victory · Seed ${run.seed}</div><h2>The march is complete</h2><p>${run.roster.length} of your squad made it to the end. <span class="ess">${got} Essence</span> banked for the Camp.</p><div class="roster">${run.roster.map(u=>`<div><img src="${portrait(u)}" alt="">${u.name}<span class="hint">${CLS[u.cls].n}</span></div>`).join('')}</div><div class="mbtns"><button class="go" type="button" data-m="ok">Back to title</button></div>`);
     try{localStorage.removeItem(SAVE)}catch(_){}run=null;titleScreen();return}
-  if(bossWin){run.act=2;run.map=genMap();run.pos=null;run.path=[];
-    await modal(`<div class="eyebrow">Act 2</div><h2>The Serpent Palace</h2><p>Past the labyrinth lies a drowned palace and the thing that rules it. The monsters here are older, faster and some of them fly.</p><div class="mbtns"><button class="go" type="button" data-m="ok">March on</button></div>`)}
+  if(bossWin){run.act=(run.act||1)+1;run.map=genMap();run.pos=null;run.path=[];const B=actBiome();
+    await modal(`<div class="eyebrow">Act ${run.act}</div><h2>${B.n}</h2><p>${B.d}</p><div class="mbtns"><button class="go" type="button" data-m="ok">March on</button></div>`)}
   await mapStep();
 }
 async function loseScreen(){
