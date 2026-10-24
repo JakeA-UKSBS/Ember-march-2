@@ -823,7 +823,7 @@ function fig(L,cls,team,pose,wk){
   if(body==='golem'){const c=L.body||'#7a746e',c2=shade(c,.7),c3=shade(c,1.2),gl=L.eye||'#ff9a3c',s=strike?3:0;
     p.poly([[8,12],[24,11],[27,24],[22,28],[10,28],[5,22]],c);p.poly([[12,4],[20,4],[22,11],[10,11]],c);p.line(8,12,6,22,c2,2);p.line(12,4,10,11,c2);
     p.ell(12,15,2.5,1.5,c3);p.ell(20,8,1.5,1,c3);p.line(15,15,17,19,gl);p.line(17,19,15,23,gl);
-    p.rect(13,7,2,1,gl);p.rect(18,7,2,1,gl);p.ell(4,20,3.5,4,c);p.ell(27+s,17-s,3.8,4,c);p.ell(27+s,17-s,1.5,1.5,c2);
+    p.rect(13,7,2,1,gl);p.rect(18,7,2,1,gl);if(L.leaves){p.ell(16,3,7,3,L.leaves);p.ell(10,5,3,2,shade(L.leaves,1.2));p.ell(22,5,3,2,shade(L.leaves,1.2));p.line(8,13,3,9,c2);p.line(24,12,29,8,c2)}p.ell(4,20,3.5,4,c);p.ell(27+s,17-s,3.8,4,c);p.ell(27+s,17-s,1.5,1.5,c2);
     p.rect(10,27,4,4,c2);p.rect(18,27,4,4,c2);
     p.outline(OUT);return p.url()}
   if(body==='flame'){const c=L.body||'#ff8a3c',c2='#ffe14a',c3='#c8322e',f=strike?3:0;
@@ -1905,7 +1905,8 @@ Object.assign(CLS,{
   CursedStag:{n:'Cursed Stag',w:['pole'],body:'beast',mov:6},HollowStag:{n:'Hollow Stag',w:['pole'],body:'beast',mov:4},
   Boulder:{n:'Boulder Golem',w:['heavy'],body:'golem',mov:4},FireSprite:{n:'Fire Sprite',w:['art'],body:'flame',mov:5,lava:true},MagmaDragon:{n:'Magma Dragon',w:['art','heavy'],body:'dragon',mov:0,lava:true},
   WyvernM:{n:'Wyvern',w:['heavy'],body:'mount',mov:6,fly:true},PegasusM:{n:'Pegasus',w:['blade'],body:'mount',mov:7,fly:true},Tempest:{n:'Storm Elemental',w:['art'],body:'storm',mov:3,fly:true},
-  Beholder:{n:'Beholder',w:['art'],body:'eye',mov:4}
+  Beholder:{n:'Beholder',w:['art'],body:'eye',mov:4},
+  Lurker:{n:'Bog Lurker',w:['blade'],body:'gator',mov:4,wade:true},Treant:{n:'Blighted Treant',w:['heavy'],body:'golem',mov:3}
 });
 CLS.LamiaM.wade=true;
 Object.assign(FOE,{
@@ -1919,7 +1920,9 @@ Object.assign(FOE,{
   FireSprite:{b:[14,0,5,5,7,2,1,4],g:[.5,0,.4,.35,.45,.15,.05,.3],items:['flameT'],look:{}},
   WyvernM:{b:[20,7,0,4,4,0,6,0],g:[.7,.45,0,.3,.25,.05,.3,.05],items:['bite'],look:{}},
   PegasusM:{b:[16,4,2,6,8,4,2,6],g:[.55,.3,.1,.4,.45,.3,.1,.35],items:['hooves'],look:{}},
-  Beholder:{b:[20,0,6,6,3,2,4,6],g:[.6,0,.4,.35,.2,.1,.2,.3],items:['darkT'],look:{}}
+  Beholder:{b:[20,0,6,6,3,2,4,6],g:[.6,0,.4,.35,.2,.1,.2,.3],items:['darkT'],look:{}},
+  Lurker:{b:[18,6,0,4,5,1,4,0],g:[.65,.4,0,.3,.3,.1,.2,.05],items:['fangs'],look:{}},
+  Treant:{b:[24,6,0,3,1,0,6,3],g:[.8,.4,0,.25,.1,0,.3,.15],items:['slam'],look:{}}
 });
 const MONLOOK={
   Sporeling:()=>({cap:pick(['#d8483a','#e8a23a','#c85aa8','#4a9ad8']),stem:'#efe6cf',small:true}),
@@ -1932,36 +1935,38 @@ const MONLOOK={
   FireSprite:()=>({body:pick(['#ff8a3c','#ff6a2a','#ffaa3c'])}),
   WyvernM:()=>({mount:'wyvern',horse:pick(['#4f7a4a','#5a4a7a','#7a4a3a','#3a5a6a'])}),
   PegasusM:()=>({mount:'pegasus',horse:pick(['#f3f0e8','#e0e6f0','#3a3440'])}),
+  Lurker:()=>({body:pick(['#4a5a32','#3a4a3a','#5a5a3a'])}),
+  Treant:()=>({body:pick(['#5a4a32','#4a3a2a','#6a5a3a']),eye:'#9aff6a',leaves:pick(['#3f7a42','#5a6a2a','#6a3a5a'])}),
   Beholder:()=>({body:pick(['#8a4a6a','#4a6a8a','#6a4a3a']),eye:pick(['#5fc2a0','#ffd23f','#ff5a3a'])})
 };
 const BIOMES={
   mushroom:{n:'Mushroom Kingdom',bg:'#3a2a48',d:'Glowing mycelium and giant toadstools. The fungus folk are cheerful, and their spores poison on a hit.',
     tip:['spores','Poison spores','Fungus attacks poison on a hit: 3 damage at the start of each of your turns for 3 turns. A Salve cures it.'],
-    maps:['glade','hollow','ring'],bossMap:'mushThrone',pool:[['Sporeling',4],['Myconid',2,2],['Mindsnail',1,3]],
+    maps:['glade','hollow','ring'],bossMap:'mushThrone',pool:[['Sporeling',4],['Myconid',2,3],['Mindsnail',1,5]],elitePool:[['Myconid',3],['Mindsnail',2],['Sporeling',1]],
     boss:{name:'King Morel the Merry',cls:'MorelKing',s:[36,0,9,6,3,4,7,8],items:['sporeCloud'],skill:'spore',look:{cap:'#d8483a',stem:'#efe6cf',crown:true}}},
   shadow:{n:'Shadow Kingdom',bg:'#24223a',d:'A haunted land of graves and crypts. Skeletons walk, and ghosts drift straight through walls.',
     tip:['ghosts','Ghosts','Ghosts ignore terrain and can pass through walls. Their dark magic heals them for a quarter of the damage dealt.'],
-    maps:['graveyard','crypt','village'],bossMap:'chapel',pool:[['Skeleton',4],['Ghost',2,2],['Gloomwing',1,3]],
+    maps:['graveyard','crypt','village'],bossMap:'chapel',pool:[['Skeleton',4],['Ghost',2,3],['Gloomwing',1,5]],elitePool:[['Ghost',3],['Gloomwing',2],['Skeleton',2]],
     boss:{name:'Vaelith the Necromancer',cls:'Necromancer',s:[30,0,11,8,6,3,5,9],items:['darkT'],skill:'focus',summon:'Skeleton',look:{style:'long',gear:'hood',cloth:'#2a1e36',skin:'#b9c2cc',hair:'#e8e2d0',eye:'#c77dff'}}},
-  swamp:{n:'The Swamp',bg:'#22362c',d:'Mangrove roots and ankle-deep water. Wading costs 1 Move; the sand banks are solid ground.',
+  swamp:{n:'The Swamp',bg:'#22362c',d:'Mangrove roots and ankle-deep water. Lurkers and lamias hunt the shallows; the sand banks are solid ground.',
     tip:['swamp','Ankle-deep water','A unit that starts its turn in the water or the mangrove roots has 1 less Move. Sand is solid ground. Fliers and swamp creatures ignore this.'],
-    maps:['flats','road','bog'],bossMap:'lair',pool:[['LamiaM',3],['MudMonster',2],['Wolf',1]],
+    maps:['flats','road','bog'],bossMap:'lair',pool:[['Lurker',3],['LamiaM',3,2],['MudMonster',2,4]],elitePool:[['MudMonster',3],['LamiaM',2],['Lurker',2]],
     boss:{name:'Krondis',cls:'Krondis',mov:4,s:[40,13,0,5,5,2,10,1],items:['bite'],skill:'fury',look:{body:'#4f6a3a',crown:true}}},
-  forest:{n:'Cursed Woodland',bg:'#26302a',d:'A dead forest under a curse. The deer here have gone wrong, and the wolves hunt in packs.',
+  forest:{n:'Cursed Woodland',bg:'#26302a',d:'A dead forest under a curse. The deer here have gone wrong, wolves hunt in packs, and the trees themselves are waking up.',
     tip:['woods','Cursed thickets','Cursed thickets give +25 Avoid and +1 Def, but cost 2 Move to enter. Stags are fast: keep your back line covered.'],
-    maps:['woodland','brook','clearing'],bossMap:'heart',pool:[['Wolf',4],['CursedStag',3],['Harpy',1,3]],
+    maps:['woodland','brook','clearing'],bossMap:'heart',pool:[['Wolf',4],['CursedStag',3,2],['Treant',2,5]],elitePool:[['Treant',3],['CursedStag',3],['Wolf',2]],
     boss:{name:'The Hollow Stag',cls:'HollowStag',mov:4,s:[34,11,0,8,9,4,6,4],items:['antlers'],skill:'swift',look:{fur:'#2a2230',eye:'#ff3a5a',antlers:'#f3e6b0',big:true}}},
   mountain:{n:'Magma Mountains',bg:'#3a2420',d:'Basalt slopes cut by rivers of magma. Golems block the passes, and fire sprites float over the lava.',
     tip:['lava','Magma','Magma can’t be crossed on foot. Fliers and fire creatures move over it freely.'],
-    maps:['fields','caldera','ridge'],bossMap:'crater',pool:[['Boulder',3],['FireSprite',3],['Harpy',1,2]],
+    maps:['fields','caldera','ridge'],bossMap:'crater',pool:[['FireSprite',3],['Boulder',3,3],['Harpy',1,4]],elitePool:[['Boulder',3],['FireSprite',2],['Harpy',1]],
     boss:{name:'Pyraxis, the Magma Dragon',cls:'MagmaDragon',s:[42,12,10,6,4,2,10,6],items:['breath'],skill:'brace',look:{body:'#5a2a22'}}},
   ship:{n:'The Flying Ship',bg:'#26304a',d:'A sky-galleon under attack. Hold the deck while wyverns, pegasi and harpies dive from the clouds.',
     tip:['ship','Defend the ship','Hold the deck until the turn count runs out; more fliers arrive every turn. Bows deal triple damage to fliers.'],
-    maps:['deck','galleon'],bossMap:'deck',pool:[['WyvernM',3],['PegasusM',2],['Harpy',2],['StormHarpy',1,3]],
+    maps:['deck','galleon'],bossMap:'deck',pool:[['Harpy',3],['PegasusM',2],['WyvernM',2,3],['StormHarpy',1,6]],elitePool:[['WyvernM',3],['StormHarpy',2],['PegasusM',1]],
     boss:{name:'The Tempest',cls:'Tempest',mov:3,s:[32,0,12,8,8,3,5,8],items:['thunderT'],skill:'swift',look:{}}},
   labyrinth:{n:'The Labyrinth',bg:'#2a2630',d:'Stone corridors with no daylight. Something with too many eyes watches from the dark.',
     tip:['maze','The Labyrinth','Beholders can turn units to stone with their gaze. Stone units skip their next turn.'],
-    maps:['maze1','vaults','pillars'],bossMap:'mazeHeart',pool:[['Gremlin',3],['Beholder',2,2],['MinotaurM',2,3]],
+    maps:['maze1','vaults','pillars'],bossMap:'mazeHeart',pool:[['Gremlin',3],['Beholder',2,3],['MinotaurM',2,5]],elitePool:[['MinotaurM',3],['Beholder',3],['Gremlin',1]],
     boss:{name:'',cls:'MinotaurM',s:[34,12,0,6,4,2,9,2],items:['steelAxe'],skill:'fury',look:null}}
 };
 for(const k in BIOMES)BIOMES[k].id=k;
@@ -2017,17 +2022,18 @@ function actBiome(){const a=run&&run.act||1;return BIOMES[(run&&run.biomes&&run.
 function genBattle(n,kind){
   const act=run&&run.act||1,B=actBiome(),bossFight=kind==='boss',elite=kind==='elite',ship=B.id==='ship';
   const mk=bossFight?B.bossMap:pick(B.maps),m=MAPS[mk];
-  /* n = which fight of the run this is, so enemies keep pace with the squad */
-  const lvBase=n,pool=B.pool.filter(p=>n>=(p[2]||1)),tot=pool.reduce((a,p)=>a+p[1],0);
+  /* difficulty climbs with the floor and the act: act 1 floor 1 is Lv 1, act 1 floor 9 is Lv 6, act 2 starts at Lv 7 */
+  const fl=run&&run.n||1,diff=(act-1)*10+fl,lvBase=1+Math.floor(diff*.6);
+  const pool=(elite?B.elitePool:B.pool).filter(p=>act>=2||fl>=(p[2]||1)),tot=pool.reduce((a,p)=>a+p[1],0);
   const roll=()=>{let r=rand()*tot;for(const[c,w]of pool){if((r-=w)<0)return c}return pool[0][0]};
-  const count=bossFight?(act>=2?5:4):Math.min(act>=2?7:6,(ship?1:2)+n),list=[];
+  const count=bossFight?(act>=2?5:4):Math.min(7,(ship?1:2)+Math.ceil(fl/3)+(act-1)*2+(elite?1:0)),list=elite?[B.elitePool[0][0]]:[];
   while(list.length<count){const c=roll();list.push(c);if(c==='Wolf'&&list.length<count&&rand()<.6)list.push('Wolf')}
   const bossName=B.boss.name||pick(BOSSN)+' '+pick(BOSST),turns=ship&&!bossFight?(elite?6:5):0;
   const goal=bossFight?'boss':ship?'defend':'rout';
   const def={biome:B.id,title:bossFight?m.n:`The ${pick(ADJ)} ${m.n}`+(elite?' (Elite)':''),goal,turns,map:m.map,start:m.start,gifts:{},
     intro:bossFight?`${bossName} waits for you in the ${m.n}. Defeat it to clear the ${B.n}.`:ship?`Fliers are diving on the ship. Hold the deck for ${turns} turns.`:elite?`A pack led by something old and strong holds the ${m.n.toLowerCase()}. Rout them all.`:`${count} monsters wait in the ${m.n.toLowerCase()}. Rout them.`};
   def.foes=()=>{const tiles=spawnTiles(m),out=[];
-    list.forEach((c,i)=>{const lv=Math.max(1,lvBase+(rand()<.3?1:0)-(c==='Wolf'?1:0)+(elite?1:0)),u=mkMon(c,lv),t=tiles[i%tiles.length];u.x=t.x;u.y=t.y;
+    list.forEach((c,i)=>{const lv=Math.max(1,lvBase+(rand()<.3?1:0)-(c==='Wolf'?1:0)+(elite?2:0)),u=mkMon(c,lv),t=tiles[i%tiles.length];u.x=t.x;u.y=t.y;
       if(elite&&i===0){u.name='Elder '+u.name;u.boss=true;ST.forEach(k=>{if(k==='hp'){u.maxhp+=6;u.hp+=6}else u[k]+=2});u.skill=u.skill||pick(['fury','brace','swift','shieldwall'])}
       if(rand()<.2){const k=pick(['qiPill','qiPill','steelJian','steelAxe','steelSpear','steelBow']);u.items.push({k,u:IT[k].uses,d:true})}out.push(u)});
     if(bossFight){let bx=6,by=3;m.map.forEach((r,y)=>{const x=r.indexOf('T');if(x>=0){bx=x;by=y}});

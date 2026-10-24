@@ -14,8 +14,8 @@ Each run picks 2 of these as its acts (`BIOMES`, `ACTS`). Each has 2-3 battle ma
 | --- | --- | --- | --- |
 | Mushroom Kingdom | Sporelings, Myconids, Mindsnails | Spores poison on a hit (3 HP a turn for 3 turns; a Salve cures it) | King Morel the Merry |
 | Shadow Kingdom | Skeletons, Skeleton Archers, Ghosts, Gloomwings | Ghosts pass through walls; dark magic drains | Vaelith the Necromancer (raises skeletons every other turn) |
-| The Swamp | Lamias, Mud Monsters, Wolves | Starting a turn in ankle-deep water or mangrove roots costs 1 Move; sand is solid | Krondis the alligator |
-| Cursed Woodland | Wolves, Cursed Stags, Harpies | Cursed thickets: +25 Avoid, 2 Move to enter | The Hollow Stag |
+| The Swamp | Bog Lurkers, Lamias, Mud Monsters | Starting a turn in ankle-deep water or mangrove roots costs 1 Move; sand is solid | Krondis the alligator |
+| Cursed Woodland | Wolves, Cursed Stags, Blighted Treants | Cursed thickets: +25 Avoid, 2 Move to enter | The Hollow Stag |
 | Magma Mountains | Boulder Golems, Fire Sprites, Harpies | Magma blocks foot units; fliers and fire creatures cross it | Pyraxis, the Magma Dragon |
 | The Flying Ship | Wyverns, Pegasi, Harpies, Storm Harpies | Defend the deck for 5-6 turns; fliers arrive every turn | The Tempest (storm elemental) |
 | The Labyrinth | Gremlins, Beholders (stone gaze), Minotaurs | Maze corridors | A Minotaur lord |
@@ -30,7 +30,7 @@ Each run picks 2 of these as its acts (`BIOMES`, `ACTS`). Each has 2-3 battle ma
 - Tavern (`tavernNode()`): talk to Marla the innkeeper and pick as many options as you can afford before leaving. Drinks (`DRINKS`): a round of ale (+30 EXP for everyone) or a spirit for one unit (+1 to a stat for good). Food (`MEALS`): squad-wide buffs for 2-3 fights (+2 damage, +15 Hit, +2 Def/Res, +1 Move, poison immunity), counted down after each won fight and shown on the map. Sellswords: 3 units for hire at 40 + 15 per level. Rumours: a hint about the region's boss and rule. Music slot: `music/tavern.mp3`.
 - Events: the Wandering Smith (reforge a weapon +1, up to +3), Abandoned Armoury (a steel weapon, or 2 Salves), Shrine of Trial (3 max HP for a random skill), Training Ground (everyone +50 EXP).
 - Forged weapons use keys like `ironAxe~2` (+2 Mt and +5 Hit per level; charms heal +5), built on demand by `ensureIt()`.
-- Enemy strength follows how many fights you've had (`run.fights`), not the floor.
+- Enemy strength climbs with floor and act: Lv 1 on Act 1 floor 1, about Lv 6 by floor 9, Lv 7+ in Act 2. Numbers grow with the floor too. Each region's `pool` lists its monsters with the floor they start appearing on (all are open in Act 2). Elites use the region's tougher `elitePool`, are led by an Elder of its strongest monster, and fight 2 levels higher with one extra enemy.
 - Saves cover both the map and battles, so Continue picks up wherever you left off.
 - Every run has a seed (shown on the draft and defeat screens). All rolls come from it.
 
